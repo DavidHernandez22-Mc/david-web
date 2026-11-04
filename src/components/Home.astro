@@ -1,0 +1,460 @@
+---
+import Base from '../layouts/Base.astro';
+import Icons from './Icons.astro';
+import logo from './logo-paths.json';
+import wordmark from './wordmark.json';
+import { es } from '../i18n/es';
+import { en } from '../i18n/en';
+import { COP_PRICES, DEMOS, SECTOR_THEME, USD_PRICES, demoSrcset, wa, type PackageId, type SectorId } from '../i18n/shared';
+import { EVENTS_ENDPOINT_ENABLED, SITE_URL, WHATSAPP_NUMBER } from '../../site.config.mjs';
+
+interface Props { lang: 'es' | 'en' }
+const { lang } = Astro.props;
+const t = lang === 'es' ? es : en;
+const isEs = lang === 'es';
+
+const general = t.sectors.general;
+const baseMessage = `${t.wa.base} ${t.wa.fallbackNoun}.`;
+const waGeneral = wa(WHATSAPP_NUMBER, baseMessage);
+const sectorIds = ['odontologia', 'estetica', 'veterinaria', 'inmobiliaria', 'restaurante', 'otro'] as const;
+const packageIds: PackageId[] = ['esencial', 'profesional', 'premium'];
+const prices = isEs ? COP_PRICES : USD_PRICES;
+const fmt = new Intl.NumberFormat(t.calc.numberFormat, { maximumFractionDigits: 0 });
+const money = (n: number) => `$${fmt.format(n)}`;
+const heroPhones = ['restaurante', 'odontologia', 'veterinaria', 'inmobiliaria', 'estetica'] as const;
+const sectorToDemo: Partial<Record<SectorId, typeof heroPhones[number]>> = { odontologia: 'odontologia', estetica: 'estetica', veterinaria: 'veterinaria', inmobiliaria: 'inmobiliaria', restaurante: 'restaurante' };
+const phoneSizes = '(min-width: 900px) 340px, 44vw';
+const demoName = (id: string) => DEMOS.find((d) => d.id === id)?.name ?? '';
+
+const pageData = {
+  lang,
+  number: WHATSAPP_NUMBER,
+  events: EVENTS_ENDPOINT_ENABLED,
+  themes: SECTOR_THEME,
+  sectorToDemo,
+  sectors: Object.fromEntries(Object.entries(t.sectors).map(([k, v]) => [k, { title: v.title, sub: v.sub, features: v.features, noun: v.noun, chip: v.chip }])),
+  wa: { base: t.wa.base, fallbackNoun: t.wa.fallbackNoun, packageSuffix: t.wa.packageSuffix('{p}'), demoSuffix: t.wa.demoSuffix('{d}'), calcSuffix: t.wa.calcSuffix, offer: t.wa.offer, formName: t.wa.formName, formBusiness: t.wa.formBusiness, formNeed: t.wa.formNeed, lumenSuffix: t.wa.lumenSuffix },
+  prices,
+  calc: { months: t.calc.months('{n}'), oneMonth: t.calc.oneMonth, lessThanOne: t.calc.lessThanOne, empty: t.calc.empty, locale: t.calc.numberFormat },
+  errors: t.close.errors,
+  demos: Object.fromEntries(DEMOS.map((d) => [d.id, { name: d.name, url: d.url, live: d.live, iframe: d.iframe }])),
+};
+
+const jsonLd = {
+  '@context': 'https://schema.org',
+  '@graph': [
+    {
+      '@type': 'ProfessionalService',
+      '@id': `${SITE_URL}/#service`,
+      name: isEs ? 'David Hernández · Webs para negocios' : 'David Hernández · Websites for businesses',
+      url: new URL(t.home, SITE_URL).href,
+      image: new URL(isEs ? '/og-es.png' : '/og-en.png', SITE_URL).href,
+      description: t.jsonLd.description,
+      areaServed: t.jsonLd.area,
+      inLanguage: lang,
+      priceRange: isEs ? '$1.600.000 - $4.900.000 COP' : '$510 - $1,550 USD',
+      founder: { '@id': `${SITE_URL}/#david` },
+    },
+    {
+      '@type': 'Person',
+      '@id': `${SITE_URL}/#david`,
+      name: 'David Hernández Castro',
+      jobTitle: t.jsonLd.jobTitle,
+      url: new URL(t.home, SITE_URL).href,
+    },
+    {
+      '@type': 'FAQPage',
+      mainEntity: t.faq.items.map((i) => ({ '@type': 'Question', name: i.q, acceptedAnswer: { '@type': 'Answer', text: i.a } })),
+    },
+  ],
+};
+const pkg = t.pricing.packages;
+---
+<Base
+  lang={lang}
+  title={t.meta.title}
+  description={t.meta.description}
+  ogImage={isEs ? '/og-es.png' : '/og-en.png'}
+  ogAlt={t.meta.ogAlt}
+  path={t.home}
+  altPath={t.otherHome}
+  jsonLd={jsonLd}
+>
+  <Icons />
+  <a class="skip" href="#main">{t.skip}</a>
+  <p class="strip">{t.strip}</p>
+
+    <header class="bar">
+      <a class="logo" href={t.home} aria-label={isEs ? 'David Hernández, webs para negocios. Inicio' : 'David Hernández, websites for businesses. Home'}>
+        <svg viewBox={`0 0 ${logo.w} 68`} aria-hidden="true"><path fill="currentColor" d={logo.bubble} /><path class="logo-cut" d={logo.d} /><path fill="currentColor" d={logo.name} /><path fill="currentColor" d={logo.tag[lang]} /></svg>
+      </a>
+      <nav class="bar-nav" aria-label={isEs ? 'Principal' : 'Main'}>
+        <a href="#demos">{t.nav.demos}</a>
+        <a href="#paquetes">{t.nav.packages}</a>
+        <a href="#preguntas">{t.nav.faq}</a>
+        <a href={t.otherHome} hreflang={isEs ? 'en' : 'es'} lang={isEs ? 'en' : 'es'} aria-label={t.otherFull}>{t.otherLabel}</a>
+      </nav>
+    </header>
+
+    <main id="main">
+      <section class="hero" id="hero" aria-labelledby="hero-title">
+        <div class="hero-copy">
+          <fieldset class="picker">
+            <legend>{t.hero.question}</legend>
+            <div class="chips">
+              {sectorIds.map((id) => (
+                <label class="chip"><input type="radio" name="sector" value={id} /><span>{t.sectors[id].chip}</span></label>
+              ))}
+            </div>
+          </fieldset>
+          <div class="hero-swap" aria-live="polite">
+            <h1 id="hero-title" data-h-title>{general.title}</h1>
+            <p class="hero-sub" data-h-sub>{general.sub}</p>
+          </div>
+          <div class="hero-actions">
+            <a class="btn btn-hero" href={waGeneral} target="_blank" rel="noopener" data-wa="hero" data-track="whatsapp_click" data-label="hero">
+              <svg class="ico" aria-hidden="true"><use href="#i-wa" /></svg>{t.hero.primary}
+            </a>
+            <p class="hero-free">{t.hero.free}</p>
+            <a class="text-link" href="#demos" data-hero-demos data-default={t.hero.secondary} data-this={t.hero.seeThis}>{t.hero.secondary}</a>
+            <a class="text-link" href="#paquetes">{t.hero.priceLink}</a>
+          </div>
+        </div>
+        <div class="hero-stage">
+          <div class="hero-side">
+            <p class="bubble-label">{t.hero.bubbleLabel}</p>
+            <p class="bubble bubble-out" data-bubble>{baseMessage}</p>
+            <h2 class="hero-list-title">{t.hero.listLabel}</h2>
+            <ul class="hero-list" data-h-list>
+              {general.features.map((f) => <li><svg class="ico-check" aria-hidden="true"><use href="#i-check" /></svg><span>{f}</span></li>)}
+            </ul>
+          </div>
+          <a class="phone hero-phone" href="#demos" data-hero-phone aria-label={t.hero.openPhone}>
+            <div class="phone-screen">
+              {heroPhones.map((id, i) => (
+                <img
+                  class:list={['hero-shot', { 'is-on': i === 0 }]}
+                  data-demo={id}
+                  srcset={i === 0 ? demoSrcset(id, 'mobile') : undefined}
+                  data-srcset={i === 0 ? undefined : demoSrcset(id, 'mobile')}
+                  src={i === 0 ? `/demos/${id}-mobile-390.webp` : 'data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw=='}
+                  sizes={phoneSizes}
+                  width="390"
+                  height="844"
+                  alt={i === 0 ? t.hero.phoneAlt(demoName(id)) : ''}
+                  data-alt={t.hero.phoneAlt(demoName(id))}
+                  decoding="async"
+                />
+              ))}
+            </div>
+          </a>
+        </div>
+      </section>
+
+    <section class="problem" aria-labelledby="problem-title">
+      <div class="wrap">
+        <h2 id="problem-title" class="h-big" data-reveal>{t.problem.title}</h2>
+        <div class="problem-grid">
+          <article class="pb pb-chat" data-reveal>
+            <div class="pb-text"><h3>{t.problem.chat.title}</h3><p>{t.problem.chat.text}</p></div>
+            <div class="pb-chatlog" aria-hidden="true">
+              {t.problem.chat.bubbles.map((b, i) => <span class="bubble bubble-in" style={`--i:${i}`}>{b}</span>)}
+            </div>
+          </article>
+          <article class="pb pb-insta" data-reveal>
+            <div class="pb-art" aria-hidden="true">
+              <div class="mini-search"><span>{t.problem.insta.search}</span><em>{t.problem.insta.none}</em></div>
+              <span class="mini-post">{t.problem.insta.post}</span>
+            </div>
+            <div class="pb-text"><h3>{t.problem.insta.title}</h3><p>{t.problem.insta.text}</p></div>
+          </article>
+          <article class="pb pb-old" data-reveal>
+            <div class="pb-art" aria-hidden="true">
+              <div class="mini-old"><span class="mini-url">{t.problem.old.url}</span><strong>{t.problem.old.notice}</strong></div>
+            </div>
+            <div class="pb-text"><h3>{t.problem.old.title}</h3><p>{t.problem.old.text}</p></div>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <section id="demos" class="demos" aria-labelledby="demos-title">
+      <div class="wrap demos-head">
+        <h2 id="demos-title" class="h-big" data-reveal>{t.demos.title}</h2>
+        <p class="lead" data-reveal>{t.demos.intro}</p>
+      </div>
+      <ul class="demo-stack">
+        {DEMOS.map((d, i) => {
+          const item = t.demos.items[d.id];
+          return (
+            <li class="demo-panel" style={`--p-bg:${d.bg};--p-ink:${d.ink};--p-btn:${d.btn};--p-btn-ink:${d.btnInk};--pi:${i}`}>
+              <a
+                class="demo-link"
+                href={d.live ? d.url : wa(WHATSAPP_NUMBER, `${baseMessage} ${t.wa.lumenSuffix}`)}
+                target="_blank"
+                rel="noopener"
+                data-demo-open={d.live ? d.id : undefined}
+                data-track={d.live ? 'demo_open' : 'whatsapp_click'}
+                data-label={d.live ? d.id : `demo-offline-${d.id}`}
+              >
+                <div class="demo-text">
+                  <h3>{item.sector}{item.tag && <span class="demo-tag"> · {item.tag}</span>}</h3>
+                  <p class="demo-hook">{item.hook}</p>
+                  <p class="demo-name">{d.name}</p>
+                  <span class="btn demo-btn">{d.live ? t.demos.open : t.demos.unavailable}<svg class="ico" aria-hidden="true"><use href="#i-arrow" /></svg></span>
+                </div>
+                <div class="demo-visual">
+                  <img class="demo-desktop" srcset={demoSrcset(d.id, 'desktop')} src={`/demos/${d.id}-desktop-960.webp`} sizes="(min-width: 900px) 52vw, 1px" width="1440" height="900" alt={t.demos.desktopAlt(d.name)} loading="lazy" decoding="async" />
+                  <div class="phone demo-phone">
+                    <div class="phone-screen">
+                      <img srcset={demoSrcset(d.id, 'mobile')} src={`/demos/${d.id}-mobile-390.webp`} sizes="(min-width: 900px) 240px, 56vw" width="390" height="844" alt={t.demos.phoneAlt(d.name)} loading="lazy" decoding="async" />
+                    </div>
+                  </div>
+                </div>
+              </a>
+            </li>
+          );
+        })}
+      </ul>
+      <p class="wrap fine">{t.demos.fine}</p>
+    </section>
+
+    <section class="receive" aria-labelledby="receive-title">
+      <div class="wrap">
+        <h2 id="receive-title" class="h-big" data-reveal>{t.receive.title}</h2>
+        <p class="lead" data-reveal>{t.receive.intro}</p>
+        <ul class="receive-grid">
+          {t.receive.items.map((it) => (
+            <li class:list={['rc', `rc-${it.k}`]} data-reveal>
+              <div class="rc-art" aria-hidden="true">
+                {it.k === 'design' && <span class="swatches">{DEMOS.slice(0, 4).map((d) => <i style={`background:${d.bg === '#dedad3' ? d.btn : d.bg}`} />)}<i style="background:#f7b91c" /></span>}
+                {it.k === 'copy' && <span class="rc-quote">{it.quote}</span>}
+                {it.k === 'phone' && <span class="mini-phone"><i /><i /><i /></span>}
+                {it.k === 'wa' && <svg class="art-wa"><use href="#i-wa" /></svg>}
+                {it.k === 'maps' && <svg class="art-pin"><use href="#i-pin" /></svg>}
+                {it.k === 'seo' && <span class="rc-snippet"><b>{it.snippet}</b><i /><i /></span>}
+                {it.k === 'pub' && <span class="rc-url">{it.url}</span>}
+                {it.k === 'train' && <span class="rc-big">{it.big}</span>}
+              </div>
+              <h3>{it.title}</h3>
+              <p>{it.text}</p>
+            </li>
+          ))}
+        </ul>
+      </div>
+    </section>
+
+    <section class="steps" aria-labelledby="steps-title">
+      <div class="wrap">
+        <h2 id="steps-title" class="h-big" data-reveal>{t.steps.title}</h2>
+        <ol class="steps-list">
+          {t.steps.items.map((s) => (
+            <li data-reveal>
+              <span class="step-time">{s.time}</span>
+              <div class="step-body"><h3>{s.title}</h3><p>{s.text}</p></div>
+            </li>
+          ))}
+        </ol>
+      </div>
+    </section>
+
+    <section class="calc" id="calculadora" aria-labelledby="calc-title">
+      <div class="wrap calc-grid">
+        <div class="calc-head">
+          <h2 id="calc-title" class="h-big" data-reveal>{t.calc.title}</h2>
+          <p class="lead" data-reveal>{t.calc.intro}</p>
+        </div>
+        <form class="calc-form" data-calc data-reveal>
+          <p class="calc-example" data-calc-example>{t.calc.example}</p>
+          <div class="field">
+            <label for="c-clients">{t.calc.clients}</label>
+            <input id="c-clients" name="clients" type="text" inputmode="numeric" autocomplete="off" value="20" />
+          </div>
+          <div class="field">
+            <label for="c-value">{t.calc.value}{!isEs && ' (USD)'}</label>
+            <div class="field-money"><span aria-hidden="true">{t.calc.valuePrefix}</span><input id="c-value" name="value" type="text" inputmode="numeric" autocomplete="off" value={isEs ? '150.000' : '50'} /></div>
+          </div>
+          <fieldset class="seg">
+            <legend>{t.calc.extra}</legend>
+            <div class="seg-row">
+              {[1, 3, 5].map((n) => <label><input type="radio" name="extra" value={n} checked={n === 3} /><span>{n}</span></label>)}
+            </div>
+            <p class="seg-hint">{t.calc.extraHint}</p>
+          </fieldset>
+        </form>
+        <div class="calc-out" data-reveal aria-live="polite">
+          <p class="calc-flow"><span>{t.calc.today} <strong data-calc-today>—</strong> {t.calc.perMonth}.</span> <span>{t.calc.withWeb} <strong data-calc-with>—</strong>.</span></p>
+          <h3>{t.calc.resultsTitle}</h3>
+          <ul class="calc-results">
+            {packageIds.map((p) => (
+              <li data-calc-row={p}>
+                <span class="calc-name">{pkg[p].name}<small>{t.pricing.from} {money(prices[p])}</small></span>
+                <strong data-calc-months>—</strong>
+                <span class="calc-bar" aria-hidden="true"><i /></span>
+              </li>
+            ))}
+          </ul>
+          <p class="calc-honest">{t.calc.honest}</p>
+          <noscript><p class="calc-honest">{t.calc.noscript}</p></noscript>
+          <a class="btn btn-accent" href={waGeneral} target="_blank" rel="noopener" data-wa="calc" data-track="whatsapp_click" data-label="calculadora"><svg class="ico" aria-hidden="true"><use href="#i-wa" /></svg>{t.calc.cta}</a>
+        </div>
+      </div>
+    </section>
+
+    <section class="pricing" id="paquetes" aria-labelledby="pricing-title">
+      <div class="wrap">
+        <h2 id="pricing-title" class="h-big" data-reveal>{t.pricing.title}</h2>
+        <p class="lead" data-reveal>{t.pricing.intro}</p>
+        <div class="tabs" role="group" aria-label={t.pricing.tabsLabel} data-tabs>
+          {packageIds.map((p) => <button type="button" class:list={['tab', { 'is-on': p === 'profesional' }]} aria-pressed={p === 'profesional' ? 'true' : 'false'} data-tab={p}>{pkg[p].name}</button>)}
+        </div>
+      </div>
+      <ul class="tickets" data-tickets tabindex="0" aria-label={t.pricing.tabsLabel}>
+        {packageIds.map((p) => (
+          <li class:list={['ticket', { 'ticket-hot': p === 'profesional' }]} data-ticket={p}>
+            <div class="ticket-main">
+              {p === 'profesional' && <p class="ticket-badge">{t.pricing.badge}</p>}
+              <h3>{pkg[p].name}</h3>
+              <p class="ticket-line">{pkg[p].tagline}</p>
+              <ul class="ticket-items">
+                {pkg[p].items.map((i) => <li><svg class="ico-check" aria-hidden="true"><use href="#i-check" /></svg><span>{i}</span></li>)}
+              </ul>
+            </div>
+            <div class="ticket-stub">
+              <p class="ticket-price"><small>{t.pricing.from}</small> {money(prices[p])}{!isEs && <small> USD</small>}</p>
+              <a class="btn ticket-btn" href={wa(WHATSAPP_NUMBER, `${baseMessage} ${t.wa.packageSuffix(pkg[p].name)}`)} target="_blank" rel="noopener" data-wa="package" data-wa-suffix={t.wa.packageSuffix(pkg[p].name)} data-track="package_click" data-label={p}>
+                <svg class="ico" aria-hidden="true"><use href="#i-wa" /></svg>{t.pricing.ctaPrefix} {pkg[p].name}
+              </a>
+            </div>
+          </li>
+        ))}
+      </ul>
+      <div class="wrap">
+        <div class="maint" data-reveal>
+          <div class="maint-text"><h3>{t.pricing.maintenance.name}</h3><p>{t.pricing.maintenance.text}</p></div>
+          <p class="maint-price">{t.pricing.maintenance.price}<small>{t.pricing.maintenance.unit}</small></p>
+          <a class="btn" href={wa(WHATSAPP_NUMBER, `${baseMessage} ${t.wa.packageSuffix(t.wa.maintenance)}`)} target="_blank" rel="noopener" data-wa="package" data-wa-suffix={t.wa.packageSuffix(t.wa.maintenance)} data-track="package_click" data-label="mantenimiento"><svg class="ico" aria-hidden="true"><use href="#i-wa" /></svg>{t.pricing.maintenance.cta}</a>
+        </div>
+        <ul class="terms">
+          {t.pricing.conditions.map((c) => <li data-reveal><strong>{c.big}</strong><span>{c.text}</span></li>)}
+        </ul>
+      </div>
+    </section>
+
+    <section class="offer" aria-labelledby="offer-title">
+      <div class="wrap offer-in">
+        <h2 id="offer-title" data-reveal>{t.offer.big}</h2>
+        <div class="offer-side" data-reveal>
+          <p class="offer-statement">{t.offer.title}</p>
+          <p>{t.offer.text}</p>
+          <a class="btn" href={wa(WHATSAPP_NUMBER, `${baseMessage} ${t.wa.offer}`)} target="_blank" rel="noopener" data-wa="offer" data-wa-suffix={t.wa.offer} data-track="whatsapp_click" data-label="oferta"><svg class="ico" aria-hidden="true"><use href="#i-wa" /></svg>{t.offer.cta}</a>
+        </div>
+      </div>
+    </section>
+
+    <section class="about" id="sobre-mi" aria-labelledby="about-title">
+      <div class="wrap about-grid">
+        <div class="portrait" role="img" aria-label={t.about.photoAlt} data-reveal><span aria-hidden="true">DH</span></div>
+        <div class="about-text">
+          <h2 id="about-title" class="h-big" data-reveal>{t.about.title}</h2>
+          {t.about.paragraphs.map((p) => <p class="about-p" data-reveal>{p}</p>)}
+          <h3 data-reveal>{t.about.workTitle}</h3>
+          <ul class="about-work" data-reveal>{t.about.work.map((w) => <li>{w}</li>)}</ul>
+        </div>
+      </div>
+    </section>
+
+    <section class="faq" id="preguntas" aria-labelledby="faq-title">
+      <div class="wrap faq-grid">
+        <div class="faq-head">
+          <h2 id="faq-title" class="h-big" data-reveal>{t.faq.title}</h2>
+          <p class="lead" data-reveal>{t.faq.intro}</p>
+        </div>
+        <div class="faq-chat">
+          {t.faq.items.map((f, i) => (
+            <details name="faq" class="q" open={i === 0}>
+              <summary><span class="bubble bubble-out">{f.q}</span></summary>
+              <div class="a"><p class="bubble bubble-in"><b>{t.faq.from}</b>{f.a}</p></div>
+            </details>
+          ))}
+        </div>
+      </div>
+    </section>
+
+    <section class="close" id="escribeme" aria-labelledby="close-title">
+      <a class="close-word" href={waGeneral} target="_blank" rel="noopener" data-wa="close" data-track="whatsapp_click" data-label="cierre" aria-label={t.close.wordLabel}>
+        <span class="close-lead">{t.close.lead}</span>
+        <svg class="close-arrow" aria-hidden="true"><use href="#i-arrow" /></svg>
+        <h2 id="close-title" class="close-big" data-fit>{t.close.word}</h2>
+      </a>
+      <div class="wrap close-form-grid">
+        <div class="close-intro">
+          <h3>{t.close.formTitle}</h3>
+          <p>{t.close.formIntro}</p>
+          <div class="close-preview" aria-hidden="true">
+            <p class="bubble-label">{t.close.previewLabel}</p>
+            <p class="bubble bubble-out" data-form-preview>{baseMessage}</p>
+            <p class="bubble bubble-in">{t.close.reply}</p>
+          </div>
+        </div>
+        <form class="lead-form" data-lead-form novalidate>
+          <div class="field"><label for="f-name">{t.close.name}</label><input id="f-name" name="name" type="text" autocomplete="name" required aria-describedby="e-name" /><p class="err" id="e-name" data-err="name"></p></div>
+          <div class="field"><label for="f-business">{t.close.business}</label><input id="f-business" name="business" type="text" autocomplete="organization" required aria-describedby="e-business" /><p class="err" id="e-business" data-err="business"></p></div>
+          <div class="field">
+            <label for="f-sector">{t.close.sector}</label>
+            <select id="f-sector" name="sector" required aria-describedby="e-sector">
+              <option value="">{t.close.sectorPlaceholder}</option>
+              {sectorIds.map((id) => <option value={id}>{t.sectors[id].chip}</option>)}
+            </select>
+            <p class="err" id="e-sector" data-err="sector"></p>
+          </div>
+          <div class="field"><label for="f-need">{t.close.need}</label><textarea id="f-need" name="need" rows="3" required placeholder={t.close.needPlaceholder} aria-describedby="e-need"></textarea><p class="err" id="e-need" data-err="need"></p></div>
+          <div class="consent">
+            <input id="f-consent" name="consent" type="checkbox" required aria-describedby="e-consent" />
+            <label for="f-consent">{t.close.consentA}<a href={t.privacyHref}>{t.close.consentLink}</a>{t.close.consentB}</label>
+            <p class="err" id="e-consent" data-err="consent"></p>
+          </div>
+          <button class="btn btn-submit" type="submit"><svg class="ico" aria-hidden="true"><use href="#i-wa" /></svg>{t.close.submit}</button>
+        </form>
+      </div>
+    </section>
+    </main>
+
+  <footer class="foot">
+    <svg class="foot-mark" viewBox={`0 0 ${wordmark.w} 92`} role="img" aria-label="David Hernández"><path fill="currentColor" d={wordmark.d} /></svg>
+    <div class="wrap foot-row">
+      <div>
+        <p class="foot-role">{t.footer.role}</p>
+        <a class="foot-wa" href={waGeneral} target="_blank" rel="noopener" data-wa="footer" data-track="whatsapp_click" data-label="footer"><svg class="ico" aria-hidden="true"><use href="#i-wa" /></svg>{t.footer.write}</a>
+      </div>
+      <ul class="foot-links">
+        <li><a href="#demos">{t.nav.demos}</a></li>
+        <li><a href="#paquetes">{t.nav.packages}</a></li>
+        <li><a href="#preguntas">{t.nav.faq}</a></li>
+        <li><a href={t.privacyHref}>{t.footer.privacy}</a></li>
+        <li><a href={t.otherHome} hreflang={isEs ? 'en' : 'es'} lang={isEs ? 'en' : 'es'}>{t.otherFull}</a></li>
+      </ul>
+    </div>
+    <div class="wrap foot-legal"><p>© {new Date().getFullYear()} {t.footer.rights}. {t.footer.fictional}</p><a href="#hero">{t.footer.top}</a></div>
+  </footer>
+
+  <a class="float" href={waGeneral} target="_blank" rel="noopener" aria-label={t.floatLabel} data-wa="float" data-track="whatsapp_click" data-label="flotante" data-float tabindex="-1">
+    <svg aria-hidden="true"><use href="#i-wa" /></svg>
+  </a>
+
+  <dialog class="viewer" data-viewer aria-label={t.viewer.label}>
+    <div class="viewer-bar">
+      <p class="viewer-name" data-viewer-name></p>
+      <a class="btn btn-ghost viewer-tab" data-viewer-tab href="#" target="_blank" rel="noopener"><svg class="ico" aria-hidden="true"><use href="#i-arrow" /></svg><span class="only-wide">{t.viewer.newTab}</span><span class="only-narrow">{t.viewer.newTabShort}</span></a>
+      <a class="btn btn-accent viewer-want" data-viewer-want href="#" target="_blank" rel="noopener" data-track="whatsapp_click"><svg class="ico" aria-hidden="true"><use href="#i-wa" /></svg>{t.viewer.want}</a>
+      <button class="viewer-close" type="button" autofocus data-viewer-close aria-label={t.viewer.close}><svg aria-hidden="true"><use href="#i-close" /></svg></button>
+    </div>
+    <div class="viewer-body">
+      <p class="viewer-loading" data-viewer-loading><span>{t.viewer.loading}</span> <a data-viewer-slow href="#" target="_blank" rel="noopener" hidden>{t.viewer.slow}</a></p>
+      <iframe data-viewer-frame title={t.viewer.label} loading="eager" referrerpolicy="no-referrer"></iframe>
+    </div>
+  </dialog>
+
+  <script type="application/json" id="page-data" set:html={JSON.stringify(pageData)} />
+  <script src="../scripts/main.ts"></script>
+</Base>

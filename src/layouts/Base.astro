@@ -1,0 +1,66 @@
+---
+import '../styles/site.css';
+import { CF_ANALYTICS_TOKEN, SITE_URL } from '../../site.config.mjs';
+
+interface Props {
+  lang: 'es' | 'en';
+  title: string;
+  description: string;
+  ogImage: string;
+  ogAlt: string;
+  path: string;
+  altPath?: string | undefined;
+  noindex?: boolean;
+  jsonLd?: object | undefined;
+  preloadImage?: { srcset: string; sizes: string } | undefined;
+}
+const { lang, title, description, ogImage, ogAlt, path, altPath, noindex = false, jsonLd, preloadImage } = Astro.props;
+const canonical = new URL(path, SITE_URL).href;
+const altUrl = altPath ? new URL(altPath, SITE_URL).href : undefined;
+const esUrl = lang === 'es' ? canonical : altUrl;
+const enUrl = lang === 'en' ? canonical : altUrl;
+const ogUrl = new URL(ogImage, SITE_URL).href;
+---
+<!doctype html>
+<html lang={lang}>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <title>{title}</title>
+    <meta name="description" content={description} />
+    <meta name="theme-color" content="#050f16" />
+    {noindex ? <meta name="robots" content="noindex" /> : <link rel="canonical" href={canonical} />}
+    {!noindex && esUrl && enUrl && (
+      <>
+        <link rel="alternate" hreflang="es" href={esUrl} />
+        <link rel="alternate" hreflang="en" href={enUrl} />
+        <link rel="alternate" hreflang="x-default" href={esUrl} />
+      </>
+    )}
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+    <link rel="icon" href="/favicon-48.png" type="image/png" sizes="48x48" />
+    <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+    <link rel="manifest" href="/site.webmanifest" />
+    <link rel="preload" href="/fonts/display.woff2" as="font" type="font/woff2" crossorigin />
+    {preloadImage && <link rel="preload" as="image" type="image/webp" imagesrcset={preloadImage.srcset} imagesizes={preloadImage.sizes} fetchpriority="low" />}
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content="David Hernández" />
+    <meta property="og:locale" content={lang === 'es' ? 'es_CO' : 'en_US'} />
+    <meta property="og:title" content={title} />
+    <meta property="og:description" content={description} />
+    <meta property="og:url" content={canonical} />
+    <meta property="og:image" content={ogUrl} />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:image:alt" content={ogAlt} />
+    <meta name="twitter:card" content="summary_large_image" />
+    {jsonLd && <script type="application/ld+json" set:html={JSON.stringify(jsonLd)} />}
+    <script is:inline>document.documentElement.classList.add('js')</script>
+  </head>
+  <body>
+    <slot />
+    {CF_ANALYTICS_TOKEN && (
+      <script is:inline defer src="https://static.cloudflareinsights.com/beacon.min.js" data-cf-beacon={JSON.stringify({ token: CF_ANALYTICS_TOKEN })} />
+    )}
+  </body>
+</html>

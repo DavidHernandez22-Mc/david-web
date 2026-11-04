@@ -1,0 +1,18 @@
+---
+import Base from '../layouts/Base.astro';
+import { es } from '../i18n/es';
+import { en } from '../i18n/en';
+interface Props { lang: 'es' | 'en'; path: string; altPath: string }
+const { lang, path, altPath } = Astro.props;
+const t = lang === 'es' ? es : en;
+---
+<Base lang={lang} title={t.privacy.metaTitle} description={t.privacy.metaDescription} ogImage={lang === 'es' ? '/og-es.png' : '/og-en.png'} ogAlt={t.meta.ogAlt} path={path} altPath={altPath}>
+  <main class="legal">
+    <a class="text-link" href={t.home}>{t.privacy.back}</a>
+    <h1>{t.privacy.title}</h1>
+    <p class="legal-date">{t.privacy.updated}</p>
+    {t.privacy.sections.map((s) => (
+      <section><h2>{s.h}</h2>{s.p.map((p) => <p>{p}</p>)}</section>
+    ))}
+  </main>
+</Base>

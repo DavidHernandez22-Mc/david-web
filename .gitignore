@@ -1,0 +1,8 @@
+node_modules/
+dist/
+.astro/
+raw-captures/
+.taste-skill/
+notas/
+reports/
+.DS_Store
