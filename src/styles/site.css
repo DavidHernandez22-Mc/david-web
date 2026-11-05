@@ -376,10 +376,10 @@ html[lang='en'] .close-big { font-size: calc((100vw - var(--gutter) * 2) / 3.86)
 
 /* Entradas: solo con JS y solo si se permite movimiento */
 @media (prefers-reduced-motion: no-preference) {
-  .js [data-reveal] { opacity: 0; transform: translateY(18px); transition: opacity 420ms var(--ease-out), transform 520ms var(--ease-out); }
-  .js [data-reveal].is-in { opacity: 1; transform: none; }
-  .js .pb-chatlog .bubble { opacity: 0; transform: translateY(10px); transition: opacity 260ms var(--ease-out), transform 320ms var(--ease-out); transition-delay: calc(var(--i) * 70ms + 120ms); }
-  .js .pb-chat.is-in .bubble { opacity: 1; transform: none; }
+  .reveal-ready [data-reveal] { opacity: 0; transform: translateY(18px); transition: opacity 420ms var(--ease-out), transform 520ms var(--ease-out); }
+  .reveal-ready [data-reveal].is-in { opacity: 1; transform: none; }
+  .reveal-ready .pb-chatlog .bubble { opacity: 0; transform: translateY(10px); transition: opacity 260ms var(--ease-out), transform 320ms var(--ease-out); transition-delay: calc(var(--i) * 70ms + 120ms); }
+  .reveal-ready .pb-chat.is-in .bubble { opacity: 1; transform: none; }
   .hero-phone { animation: phone-in 620ms var(--ease-out) both 80ms; }
 }
 @keyframes phone-in { from { transform: translateY(36px); } }

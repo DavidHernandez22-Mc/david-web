@@ -21,6 +21,19 @@ const $ = <T extends Element = HTMLElement>(s: string, r: ParentNode = document)
 const $$ = <T extends Element = HTMLElement>(s: string, r: ParentNode = document) => [...r.querySelectorAll<T>(s)];
 const reduced = matchMedia('(prefers-reduced-motion: reduce)').matches;
 
+/* ---------- Entradas al hacer scroll: una vez, y rápidas ----------
+   Va primero y solo esconde el contenido cuando ya puede mostrarlo (clase reveal-ready).
+   Si algo más adelante falla, ninguna sección se queda en blanco. */
+if (!reduced && 'IntersectionObserver' in window) {
+  const io = new IntersectionObserver((es) => {
+    es.forEach((e) => {
+      if (e.isIntersecting) { e.target.classList.add('is-in'); io.unobserve(e.target); }
+    });
+  }, { rootMargin: '0px 0px -6% 0px', threshold: 0.05 });
+  $$('[data-reveal]').forEach((el) => io.observe(el));
+  document.documentElement.classList.add('reveal-ready');
+}
+
 /* ---------- Eventos: Cloudflare no guarda nada que identifique a la persona ---------- */
 function track(name: string, label: string) {
   window.dispatchEvent(new CustomEvent('dw:track', { detail: { name, label } }));
@@ -155,17 +168,6 @@ $$<HTMLInputElement>('input[name="sector"]').forEach((r) => {
   });
 });
 
-// Un enlace como /?negocio=veterinaria llega con el hero ya adaptado (útil para escribirle a un prospecto).
-const preset = new URLSearchParams(location.search).get('negocio');
-if (preset && data.sectors[preset]) {
-  const radio = $<HTMLInputElement>(`input[name="sector"][value="${CSS.escape(preset)}"]`);
-  if (radio) radio.checked = true;
-  setSector(preset, { silent: true });
-} else {
-  // La primera captura ya está; las demás cargan cuando el navegador está libre.
-  const idle = window.requestIdleCallback ?? ((cb: () => void) => setTimeout(cb, 1500));
-  idle(() => { shots.slice(1, 2).forEach(loadShot); startRotator(); });
-}
 
 /* ---------- Experiencia firma 2: visor de demos ---------- */
 const viewer = $<HTMLDialogElement>('[data-viewer]')!;
@@ -357,17 +359,17 @@ const floatIo = new IntersectionObserver((es) => {
 floatIo.observe($('#hero')!);
 floatIo.observe($('#escribeme')!);
 
-/* ---------- Entradas al hacer scroll: una vez, y rápidas ---------- */
-const reveals = $$('[data-reveal]');
-if (reduced || !('IntersectionObserver' in window)) {
-  reveals.forEach((el) => el.classList.add('is-in'));
+// Un enlace como /?negocio=veterinaria llega con el hero ya adaptado (útil para escribirle a un prospecto).
+// Va al final: setSector usa el formulario y el resto de la página, que ya existen aquí.
+const preset = new URLSearchParams(location.search).get('negocio');
+if (preset && data.sectors[preset]) {
+  const radio = $<HTMLInputElement>(`input[name="sector"][value="${CSS.escape(preset)}"]`);
+  if (radio) radio.checked = true;
+  setSector(preset, { silent: true });
 } else {
-  const io = new IntersectionObserver((es) => {
-    es.forEach((e) => {
-      if (e.isIntersecting) { e.target.classList.add('is-in'); io.unobserve(e.target); }
-    });
-  }, { rootMargin: '0px 0px -6% 0px', threshold: 0.05 });
-  reveals.forEach((el) => io.observe(el));
+  // La primera captura ya está; las demás cargan cuando el navegador está libre.
+  const idle = window.requestIdleCallback ?? ((cb: () => void) => setTimeout(cb, 1500));
+  idle(() => { shots.slice(1, 2).forEach(loadShot); startRotator(); });
 }
 
 refreshLinks();

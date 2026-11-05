@@ -121,6 +121,27 @@ for (const [path, L] of [['/', { base: 'Hola David, vi tu página y quiero una w
   await ctx.close();
 }
 
+// Con animaciones activas (como en un celular normal): cada enlace con sector, sin errores
+// y sin ninguna sección en blanco después de recorrer la página.
+for (const path of ['/', '/en/', ...['odontologia', 'estetica', 'veterinaria', 'inmobiliaria', 'restaurante', 'otro', 'inventado'].map((s) => `/?negocio=${s}`), '/en/?negocio=estetica']) {
+  const mc = await browser.newContext({ viewport: { width: 390, height: 780 }, isMobile: true, hasTouch: true, reducedMotion: 'no-preference' });
+  const mp = await mc.newPage();
+  const errs = [];
+  mp.on('pageerror', (e) => errs.push(e.message));
+  await mp.goto(base + path, { waitUntil: 'load' });
+  await mp.evaluate(async () => {
+    document.documentElement.style.scrollBehavior = 'auto';
+    for (let y = 0; y < document.body.scrollHeight; y += 300) { window.scrollTo(0, y); await new Promise((r) => setTimeout(r, 40)); }
+  });
+  await mp.waitForTimeout(900);
+  const r = await mp.evaluate(() => {
+    const all = [...document.querySelectorAll('[data-reveal]')];
+    return { total: all.length, hidden: all.filter((e) => getComputedStyle(e).opacity === '0').map((e) => e.textContent.trim().slice(0, 30)) };
+  });
+  ok(errs.length === 0 && r.hidden.length === 0, `${path}: sin errores (${errs.join('; ') || 'ninguno'}) y ${r.total - r.hidden.length}/${r.total} bloques visibles ${r.hidden.slice(0, 3).join(' | ')}`);
+  await mc.close();
+}
+
 // Enlace directo a un sector, 404, teclado y movimiento reducido
 const ctx = await browser.newContext({ viewport: { width: 1280, height: 800 }, reducedMotion: 'reduce' });
 const page = await ctx.newPage();
