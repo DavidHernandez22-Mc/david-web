@@ -1,6 +1,6 @@
 // Único archivo que hay que tocar al comprar el dominio o cambiar datos de contacto.
 // Lo leen astro.config, canonical, og:url, og:image, sitemap, robots, hreflang y los datos estructurados.
-export const SITE_URL = 'https://david-web.pages.dev';
+export const SITE_URL = 'https://david-web.castrod2207.workers.dev';
 
 // Sin "+" ni espacios. Solo se usa dentro de enlaces de WhatsApp, nunca como texto visible.
 export const WHATSAPP_NUMBER = '573008564773';
