@@ -14,7 +14,7 @@ El sitio se publica como Worker con archivos estáticos. Workers Builds corre `n
 
 - `not_found_handling: "404-page"` hace que una URL inexistente responda 404 con la página propia: `/en/...` usa la versión en inglés (`dist/en/404.html`) y el resto la de español.
 - Las cabeceras de seguridad y caché están en `public/_headers`.
-- `functions/api/event.js` es para Cloudflare Pages y en Workers no se ejecuta: mientras tanto, los eventos solo se emiten en el navegador como `dw:track`.
+- `worker/index.js` es la entrada del Worker: solo atiende `/api/*` (guarda clics y visitas). Todo lo demás, incluida la 404, lo sirve Cloudflare directo desde `dist/`.
 
 Para probar el Worker en local: `npm run build && npx wrangler dev`.
 
@@ -44,20 +44,35 @@ npm run brand     # regenera logo, favicon e imágenes para compartir
 
 ## Analítica
 
-Sin cookies y sin datos personales.
+Sin cookies y sin guardar IP ni nada que identifique a la persona.
 
-1. **Visitas:** crea un sitio en Cloudflare Web Analytics y pega el token en `CF_ANALYTICS_TOKEN`, dentro de `site.config.mjs`. Vacío, no se carga ningún script.
-2. **Eventos:** Cloudflare Web Analytics mide visitas, no eventos personalizados. Por eso los clics van a una Pages Function propia, `functions/api/event.js`, que los escribe en Workers Analytics Engine:
-   - En Cloudflare Pages: Settings → Functions → Analytics Engine bindings, crea el binding `EVENTS`.
-   - Sin el binding, la función responde 204 y no guarda nada. El sitio funciona igual.
+### Clics y visitas (ya funciona)
 
-| Evento | Cuándo | `label` |
+Cada clic en WhatsApp, demo o paquete, y cada visita al inicio, se envía a `POST /api/event`. El Worker (`worker/index.js`) lo guarda en **Workers Analytics Engine**, en el dataset `david_web_events`, que se crea solo con el primer evento.
+
+| Evento | Cuándo | Detalle (`blob2`) |
 | --- | --- | --- |
-| `whatsapp_click` | Clic en cualquier WhatsApp | `hero`, `calculadora`, `oferta`, `cierre`, `footer`, `flotante`, `formulario`, `visor-<demo>`, `demo-offline-<demo>` |
+| `page_view` | Alguien abre el inicio | `/`, `/en/`, o `/?negocio=<sector>` si llegó con un enlace por sector |
+| `whatsapp_click` | Clic en cualquier WhatsApp | `hero`, `calculadora`, `oferta`, `cierre`, `footer`, `flotante`, `formulario`, `visor-<demo>` |
 | `demo_open` | Abrir una demo | `<demo>`, `hero-<demo>`, `hero-celular-<demo>` |
 | `package_click` | Botón de un paquete | `esencial`, `profesional`, `premium`, `mantenimiento` |
 
-Cada evento también se emite en el navegador como `dw:track`, por si luego quieres conectar otra herramienta.
+También se guardan el idioma (`blob3`) y el país aproximado (`blob4`).
+
+**Cómo ver los datos.** Analytics Engine no tiene gráficos en el panel; se consulta con SQL:
+
+1. En Cloudflare: Manage Account → Account API Tokens → Create Token → Custom token, permiso **Account → Account Analytics → Read**.
+2. En la terminal: `CF_API_TOKEN=tu_token npm run eventos` (o `npm run eventos -- 7` para los últimos 7 días).
+
+Muestra totales por evento, el detalle de cada uno y las visitas por país. Los datos se guardan 3 meses. En el panel, Workers & Pages → david-web → Observability muestra además los registros del Worker.
+
+### Visitas con Cloudflare Web Analytics (falta el token)
+
+1. En Cloudflare: Analytics & Logs → Web Analytics → Add a site, con el nombre `david-web.castrod2207.workers.dev`.
+2. Elige la instalación manual (JS snippet) y copia el valor de `"token"`.
+3. Pégalo en `CF_ANALYTICS_TOKEN`, dentro de `site.config.mjs`, y haz commit y push.
+
+Ahí verás visitas, páginas, países, dispositivos y de dónde llega la gente. La política de seguridad (`public/_headers`) ya permite su script.
 
 ## Pruebas
 

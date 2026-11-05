@@ -1,0 +1,32 @@
+// Prueba la lógica del Worker sin Cloudflare: node scripts/test-worker.mjs
+import worker from '../worker/index.js';
+let fails = 0;
+const ok = (c, m) => { console.log(c ? 'ok  ' : 'FAIL', m); if (!c) fails++; };
+const points = [];
+const env = { EVENTS: { writeDataPoint: (p) => points.push(p) }, ASSETS: { fetch: () => new Response('asset', { status: 200 }) } };
+const post = (body) => new Request('https://x.dev/api/event', { method: 'POST', body: typeof body === 'string' ? body : JSON.stringify(body) });
+const withCf = (req, cf) => Object.defineProperty(req, 'cf', { value: cf });
+
+let r = await worker.fetch(withCf(post({ name: 'whatsapp_click', label: 'hero', lang: 'es' }), { country: 'CO' }), env);
+ok(r.status === 204 && points.length === 1, 'evento válido: 204 y se guarda');
+ok(JSON.stringify(points[0].blobs) === JSON.stringify(['whatsapp_click', 'hero', 'es', 'CO']) && points[0].indexes[0] === 'whatsapp_click', `datos guardados ${JSON.stringify(points[0]?.blobs)}`);
+r = await worker.fetch(post({ name: 'page_view', label: '/?negocio=veterinaria', lang: 'es' }), env);
+ok(points.at(-1).blobs[1] === '/?negocio=veterinaria', 'visita con enlace por sector');
+r = await worker.fetch(post({ name: 'borrar_todo', label: 'x' }), env);
+ok(r.status === 204 && points.length === 2, 'evento no permitido: se ignora');
+r = await worker.fetch(post('esto no es json'), env);
+ok(r.status === 204 && points.length === 2, 'cuerpo roto: no falla');
+r = await worker.fetch(post({ name: 'demo_open', label: 'x'.repeat(2000) }), env);
+ok(points.length === 2, 'cuerpo demasiado grande: se ignora');
+r = await worker.fetch(post({ name: 'demo_open', label: '<script>alert(1)</script>' }), env);
+ok(!points.at(-1).blobs[1].includes('<'), `detalle limpio: ${points.at(-1).blobs[1]}`);
+r = await worker.fetch(new Request('https://x.dev/api/event'), env);
+ok(r.status === 405, 'GET a /api/event: 405');
+r = await worker.fetch(new Request('https://x.dev/api/otra'), env);
+ok(r.status === 404, '/api/otra: 404');
+r = await worker.fetch(new Request('https://x.dev/'), env);
+ok((await r.text()) === 'asset', 'cualquier otra ruta va a los archivos estáticos');
+r = await worker.fetch(post({ name: 'demo_open', label: 'lumen' }), { ASSETS: env.ASSETS });
+ok(r.status === 204, 'sin binding EVENTS: responde 204 igual');
+console.log(fails ? `\n${fails} FALLOS` : '\nTODO OK');
+process.exit(fails ? 1 : 0);

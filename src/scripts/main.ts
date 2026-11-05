@@ -69,7 +69,7 @@ if (menu) {
   });
 }
 
-/* ---------- Eventos: Cloudflare no guarda nada que identifique a la persona ---------- */
+/* ---------- Eventos: van al Worker (/api/event) y no guardan nada que identifique a la persona ---------- */
 function track(name: string, label: string) {
   window.dispatchEvent(new CustomEvent('dw:track', { detail: { name, label } }));
   if (!data.events || /^(localhost|127\.)/.test(location.hostname)) return;
@@ -428,3 +428,7 @@ if (preset && data.sectors[preset]) {
 }
 
 refreshLinks();
+
+// Una visita a la página. Si llegó con un enlace por sector (?negocio=...), queda en el detalle,
+// así se sabe qué prospectos abrieron el enlace que les mandaste.
+track('page_view', `${location.pathname}${preset && data.sectors[preset] ? `?negocio=${preset}` : ''}`);

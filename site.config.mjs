@@ -5,8 +5,9 @@ export const SITE_URL = 'https://david-web.castrod2207.workers.dev';
 // Sin "+" ni espacios. Solo se usa dentro de enlaces de WhatsApp, nunca como texto visible.
 export const WHATSAPP_NUMBER = '573008564773';
 
-// Token de Cloudflare Web Analytics. Vacío = no se carga ningún script de analítica.
+// Token de Cloudflare Web Analytics (visitas, sin cookies). Vacío = no se carga ningún script.
+// Se obtiene en el panel: Analytics & Logs → Web Analytics → Add a site (ver README).
 export const CF_ANALYTICS_TOKEN = '';
 
-// Enciende el envío de eventos a la Pages Function /api/event (ver README).
+// Enciende el envío de clics y visitas al Worker en /api/event (worker/index.js, ver README).
 export const EVENTS_ENDPOINT_ENABLED = true;

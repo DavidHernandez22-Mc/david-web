@@ -9,7 +9,9 @@
     "preview": "astro preview",
     "lint": "astro check && eslint .",
     "capture": "node scripts/capture-demos.mjs && node scripts/optimize-images.mjs",
-    "brand": "node scripts/build-brand.mjs"
+    "brand": "node scripts/build-brand.mjs",
+    "eventos": "node scripts/eventos.mjs",
+    "test:worker": "node scripts/test-worker.mjs"
   },
   "dependencies": {
     "@fontsource-variable/red-hat-display": "^5.3.0",

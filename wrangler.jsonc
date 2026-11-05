@@ -1,13 +1,20 @@
-// Configuración del Worker que publica el sitio estático (Cloudflare Workers, static assets).
+// Configuración del Worker que publica el sitio (Cloudflare Workers con static assets).
 // Workers Builds corre `npm run build` y luego `npx wrangler deploy`, que lee este archivo.
 {
   "$schema": "node_modules/wrangler/config-schema.json",
   "name": "david-web",
+  "main": "worker/index.js",
   "compatibility_date": "2025-09-01",
   "assets": {
     "directory": "./dist",
+    "binding": "ASSETS",
+    // Solo /api/* pasa por el Worker; el resto se sirve directo desde dist/.
+    "run_worker_first": ["/api/*"],
     // Una URL inexistente responde 404 con el 404.html más cercano: /en/... usa en/404.html.
     "not_found_handling": "404-page",
     "html_handling": "auto-trailing-slash"
-  }
+  },
+  // Clics y visitas. El dataset se crea solo con el primer evento.
+  "analytics_engine_datasets": [{ "binding": "EVENTS", "dataset": "david_web_events" }],
+  "observability": { "enabled": true }
 }
