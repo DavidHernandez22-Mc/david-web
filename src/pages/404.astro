@@ -1,24 +1,4 @@
 ---
-import Base from '../layouts/Base.astro';
-import Icons from '../components/Icons.astro';
-import { es } from '../i18n/es';
-import { wa } from '../i18n/shared';
-import { WHATSAPP_NUMBER } from '../../site.config.mjs';
-const t = es;
+import NotFound from '../components/NotFound.astro';
 ---
-<Base lang="es" title={t.notFound.metaTitle} description={t.notFound.metaDescription} ogImage="/og-es.png" ogAlt={t.meta.ogAlt} path="/404/" noindex>
-  <Icons />
-  <main class="nf">
-    <p class="nf-big" aria-hidden="true">404</p>
-    <div class="nf-chat">
-      <p class="bubble bubble-out">¿Está esta página?</p>
-      <h1 class="bubble bubble-in nf-title">{t.notFound.title}</h1>
-      <p class="bubble bubble-in">{t.notFound.text}</p>
-    </div>
-    <div class="nf-actions">
-      <a class="btn" href="/">{t.notFound.back}</a>
-      <a class="text-link" href={wa(WHATSAPP_NUMBER, `${t.wa.base} ${t.wa.fallbackNoun}.`)} target="_blank" rel="noopener"><svg class="ico" aria-hidden="true"><use href="#i-wa" /></svg>{t.hero.primary}</a>
-    </div>
-    <p class="nf-en" lang="en"><a href="/en/">This page doesn’t exist. Go to the English site</a></p>
-  </main>
-</Base>
+<NotFound lang="es" />

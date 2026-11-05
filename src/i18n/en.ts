@@ -291,6 +291,7 @@ export const en: Copy = {
   notFound: {
     metaTitle: 'Page not found · David Hernández',
     metaDescription: 'This page doesn’t exist. Head back home or message me on WhatsApp.',
+    ask: 'Is this page here?',
     title: 'Nothing here.',
     text: 'This page doesn’t exist. Which is exactly what happens when a customer looks for you and can’t find you.',
     back: 'Back to home',

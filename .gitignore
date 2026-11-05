@@ -6,3 +6,4 @@ raw-captures/
 notas/
 reports/
 .DS_Store
+.wrangler/

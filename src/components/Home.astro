@@ -92,10 +92,10 @@ const hasPhoto = existsSync('public/assets/foto-david.webp');
         <svg viewBox={`0 0 ${logo.w} 68`} aria-hidden="true"><path fill="currentColor" d={logo.bubble} /><path class="logo-cut" d={logo.d} /><path fill="currentColor" d={logo.name} /><path fill="currentColor" d={logo.tag[lang]} /></svg>
       </a>
       <nav class="bar-nav" aria-label={isEs ? 'Principal' : 'Main'}>
-        <a href="#demos">{t.nav.demos}</a>
-        <a href="#paquetes">{t.nav.packages}</a>
-        <a href="#preguntas">{t.nav.faq}</a>
-        <a href={t.otherHome} hreflang={isEs ? 'en' : 'es'} lang={isEs ? 'en' : 'es'} aria-label={t.otherFull}>{t.otherLabel}</a>
+        <a class="nav-sec" href="#demos">{t.nav.demos}</a>
+        <a class="nav-sec" href="#paquetes">{t.nav.packages}</a>
+        <a class="nav-sec" href="#preguntas">{t.nav.faq}</a>
+        <a class="nav-lang" href={t.otherHome} hreflang={isEs ? 'en' : 'es'} lang={isEs ? 'en' : 'es'} aria-label={t.otherFull}>{t.otherLabel}</a>
         <button class="menu-btn" type="button" aria-label={t.nav.menuLabel} aria-haspopup="dialog" data-menu-open>{t.nav.menu}</button>
       </nav>
     </header>

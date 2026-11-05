@@ -94,6 +94,8 @@ for (const [path, L] of [['/', { base: 'Hola David, vi tu página y quiero una w
   ok((await page.textContent('.strip')).includes(path === '/' ? 'el mismo día' : 'the same day'), 'franja superior nueva');
   ok((await page.textContent('.ticket-badge')).trim() === (path === '/' ? 'Recomendado' : 'Recommended'), 'etiqueta Recomendado');
 
+  ok(await page.$eval('.nav-lang', (e) => getComputedStyle(e).display !== 'none' && e.textContent.trim() === (location.pathname.startsWith('/en/') ? 'ES' : 'EN')), 'idioma visible junto al menú');
+
   // Menú en celular
   await page.evaluate(() => window.scrollTo(0, 0));
   await page.tap('[data-menu-open]');

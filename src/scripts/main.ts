@@ -119,11 +119,24 @@ function loadShot(img: HTMLImageElement) {
     delete img.dataset.srcset;
   }
 }
+// Cruce sin parpadeo: la imagen nueva se decodifica antes y entra por encima mientras la
+// anterior sigue visible debajo. Solo cuando la nueva ya cubre todo, se apaga la anterior.
+let current = shots.find((s) => s.classList.contains('is-on')) ?? shots[0]!;
+let swapSeq = 0;
 function showShot(img: HTMLImageElement) {
   loadShot(img);
-  shots.forEach((s) => {
-    s.classList.toggle('is-on', s === img);
-    s.alt = s === img ? (s.dataset.alt ?? '') : '';
+  if (img === current) return;
+  current = img;
+  const seq = ++swapSeq;
+  shots.forEach((s) => { s.alt = s === img ? (s.dataset.alt ?? '') : ''; });
+  img.decode().catch(() => undefined).then(() => {
+    if (seq !== swapSeq) return;
+    shots.forEach((s) => s.classList.toggle('is-top', s === img));
+    img.classList.add('is-on');
+    window.setTimeout(() => {
+      if (seq !== swapSeq) return;
+      shots.forEach((s) => { if (s !== img) s.classList.remove('is-on'); });
+    }, reduced ? 0 : 480);
   });
 }
 function startRotator() {
@@ -131,8 +144,9 @@ function startRotator() {
   if (reduced) return;
   rotator = window.setInterval(() => {
     if (document.hidden) return;
-    const i = shots.findIndex((s) => s.classList.contains('is-on'));
+    const i = shots.indexOf(current);
     showShot(shots[(i + 1) % shots.length]!);
+    // La siguiente ya queda descargada antes de su turno.
     loadShot(shots[(i + 2) % shots.length]!);
   }, 3600);
 }

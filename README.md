@@ -2,16 +2,21 @@
 
 Web profesional de David Hernández · Webs para negocios. Sitio estático en español (`/`) e inglés (`/en/`).
 
-## Publicar en Cloudflare Pages
+## Publicar en Cloudflare Workers
+
+El sitio se publica como Worker con archivos estáticos. Workers Builds corre `npm run build` y después `npx wrangler deploy`, que lee `wrangler.jsonc`.
 
 | Ajuste | Valor |
 | --- | --- |
-| Framework preset | Astro |
 | Build command | `npm run build` |
-| Carpeta de salida | `dist` |
-| Node | 22 o superior (`NODE_VERSION=22`) |
+| Deploy command | `npx wrangler deploy` |
+| Carpeta de salida | `dist` (definida en `wrangler.jsonc`) |
 
-Las cabeceras de seguridad y caché están en `public/_headers`. La página `404.html` la sirve Cloudflare sola.
+- `not_found_handling: "404-page"` hace que una URL inexistente responda 404 con la página propia: `/en/...` usa la versión en inglés (`dist/en/404.html`) y el resto la de español.
+- Las cabeceras de seguridad y caché están en `public/_headers`.
+- `functions/api/event.js` es para Cloudflare Pages y en Workers no se ejecuta: mientras tanto, los eventos solo se emiten en el navegador como `dw:track`.
+
+Para probar el Worker en local: `npm run build && npx wrangler dev`.
 
 ## Comandos
 

@@ -1,0 +1,27 @@
+---
+import Base from '../layouts/Base.astro';
+import Icons from './Icons.astro';
+import { es } from '../i18n/es';
+import { en } from '../i18n/en';
+import { wa } from '../i18n/shared';
+import { WHATSAPP_NUMBER } from '../../site.config.mjs';
+interface Props { lang: 'es' | 'en' }
+const { lang } = Astro.props;
+const t = lang === 'es' ? es : en;
+---
+<Base lang={lang} title={t.notFound.metaTitle} description={t.notFound.metaDescription} ogImage={lang === 'es' ? '/og-es.png' : '/og-en.png'} ogAlt={t.meta.ogAlt} path={lang === 'es' ? '/404/' : '/en/404/'} noindex>
+  <Icons />
+  <main class="nf">
+    <p class="nf-big" aria-hidden="true">404</p>
+    <div class="nf-chat">
+      <p class="bubble bubble-out">{t.notFound.ask}</p>
+      <h1 class="bubble bubble-in nf-title">{t.notFound.title}</h1>
+      <p class="bubble bubble-in">{t.notFound.text}</p>
+    </div>
+    <div class="nf-actions">
+      <a class="btn" href={t.home}>{t.notFound.back}</a>
+      <a class="text-link" href={wa(WHATSAPP_NUMBER, `${t.wa.base} ${t.wa.fallbackNoun}.`)} target="_blank" rel="noopener"><svg class="ico" aria-hidden="true"><use href="#i-wa" /></svg>{t.hero.primary}</a>
+    </div>
+    <p class="nf-en" lang={lang === 'es' ? 'en' : 'es'}><a href={t.otherHome}>{t.notFound.otherLang}</a></p>
+  </main>
+</Base>

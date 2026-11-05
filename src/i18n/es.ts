@@ -291,6 +291,7 @@ export const es = {
   notFound: {
     metaTitle: 'Esta página no existe · David Hernández',
     metaDescription: 'Esta página no existe. Vuelve al inicio o escríbeme por WhatsApp.',
+    ask: '¿Está esta página?',
     title: 'Aquí no hay nada.',
     text: 'Esta página no existe. Es justo lo que le pasa a un cliente que te busca y no te encuentra.',
     back: 'Volver al inicio',
