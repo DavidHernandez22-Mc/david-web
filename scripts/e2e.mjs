@@ -65,8 +65,9 @@ for (const [path, L] of [['/', { base: 'Hola David, vi tu página y quiero una w
 
   // Visor
   const live = await page.$$('[data-demo-open]');
-  ok(live.length === 4, `${live.length} demos en vivo`);
-  for (const id of ['odontologia', 'restaurante', 'inmobiliaria', 'veterinaria']) {
+  ok(live.length === 5, `${live.length} demos en vivo`);
+  ok(!(await page.textContent('#demos')).match(/Pídemela|Ask me for it/), 'ninguna demo pide WhatsApp en vez de abrir');
+  for (const id of ['odontologia', 'restaurante', 'inmobiliaria', 'veterinaria', 'estetica']) {
     await page.$eval(`[data-demo-open="${id}"]`, (a) => a.click());
     await page.waitForTimeout(200);
     ok(await page.$eval('[data-viewer]', (d) => d.open), `visor abre ${id}`);
@@ -78,13 +79,35 @@ for (const [path, L] of [['/', { base: 'Hola David, vi tu página y quiero una w
     }
     ok(loaded, `iframe carga contenido de ${id}`);
     const tab = await page.$eval('[data-viewer-tab]', (a) => a.href);
-    ok(tab.includes('.app'), 'botón pestaña nueva con URL');
+    ok(/\.(app)\/?$/.test(tab), `botón pestaña nueva con URL (${tab})`);
     const want = await page.$eval('[data-viewer-want]', (a) => a.href);
     ok(text(want).startsWith(L.base), `"Quiero una así": "${text(want)}"`);
     await page.tap('[data-viewer-close]');
     await page.waitForTimeout(100);
     ok(!(await page.$eval('[data-viewer]', (d) => d.open)) && !(await page.$eval('[data-viewer-frame]', (f) => f.hasAttribute('src'))), 'visor cierra y libera el iframe');
   }
+
+  // Hero en celular: titular → subtítulo → botón → texto → enlaces → selector
+  const order = await page.evaluate(() => ['h1', '.hero-sub', '.btn-hero', '.hero-free', '[data-hero-demos]', '.picker'].map((q) => document.querySelector(q).getBoundingClientRect().top));
+  ok(order.every((y, i) => i === 0 || y > order[i - 1]), `orden del hero en celular ${order.map(Math.round).join(' < ')}`);
+  ok(await page.$eval('.chips', (c) => c.getBoundingClientRect().height < 60), 'selector en una fila compacta');
+  ok((await page.textContent('.strip')).includes(path === '/' ? 'el mismo día' : 'the same day'), 'franja superior nueva');
+  ok((await page.textContent('.ticket-badge')).trim() === (path === '/' ? 'Recomendado' : 'Recommended'), 'etiqueta Recomendado');
+
+  // Menú en celular
+  await page.evaluate(() => window.scrollTo(0, 0));
+  await page.tap('[data-menu-open]');
+  await page.waitForTimeout(300);
+  ok(await page.$eval('[data-menu]', (d) => d.open && d.getBoundingClientRect().height >= innerHeight - 1), 'menú abre a pantalla completa');
+  ok((await page.$$eval('[data-menu-link]', (a) => a.map((x) => x.textContent))).length === 4, '4 enlaces en el menú');
+  await page.tap('[data-menu-link][href="#paquetes"]');
+  await page.waitForTimeout(1200);
+  ok(!(await page.$eval('[data-menu]', (d) => d.open)), 'menú se cierra al tocar un enlace');
+  ok(await page.$eval('#paquetes', (e) => Math.abs(e.getBoundingClientRect().top) < 80), 'y lleva a Paquetes');
+
+  // Demos en celular: la captura no pasa del 55 % del alto de pantalla
+  const tall = await page.$$eval('.demo-visual', (v) => Math.max(...v.map((x) => x.getBoundingClientRect().height)) / innerHeight);
+  ok(tall <= 0.55, `captura de demo ocupa ${Math.round(tall * 100)} % del alto`);
 
   // Botón flotante
   await page.evaluate(() => { document.documentElement.style.scrollBehavior = 'auto'; window.scrollTo(0, 0); });
@@ -142,10 +165,26 @@ for (const path of ['/', '/en/', ...['odontologia', 'estetica', 'veterinaria', '
   await mc.close();
 }
 
+// Saltos (ancla, menú) con animaciones activas: nada queda oculto por encima de la pantalla.
+{
+  const jc = await browser.newContext({ viewport: { width: 390, height: 780 }, isMobile: true, hasTouch: true, reducedMotion: 'no-preference' });
+  const jp = await jc.newPage();
+  for (const hash of ['#demos', '#paquetes', '#preguntas', '#escribeme']) {
+    await jp.goto(base + '/', { waitUntil: 'load' });
+    await jp.evaluate((h) => { document.documentElement.style.scrollBehavior = 'auto'; location.hash = h; }, hash);
+    await jp.waitForTimeout(500);
+    const hidden = await jp.evaluate(() => [...document.querySelectorAll('.will-reveal')].filter((e) => e.getBoundingClientRect().top < innerHeight).length);
+    ok(hidden === 0, `salto a ${hash}: ${hidden} bloques ocultos a la vista`);
+  }
+  await jc.close();
+}
+
 // Enlace directo a un sector, 404, teclado y movimiento reducido
 const ctx = await browser.newContext({ viewport: { width: 1280, height: 800 }, reducedMotion: 'reduce' });
 const page = await ctx.newPage();
 await page.goto(base + '/?negocio=restaurante');
+ok(await page.evaluate(() => document.querySelector('.picker').getBoundingClientRect().top < document.querySelector('h1').getBoundingClientRect().top), 'en computador el selector sigue arriba del titular');
+ok(await page.$eval('[data-menu-open]', (b) => getComputedStyle(b).display === 'none'), 'en computador no aparece el botón de menú');
 ok((await page.textContent('h1')).includes('comisiones'), 'enlace ?negocio=restaurante');
 await page.keyboard.press('Tab');
 ok(await page.evaluate(() => document.activeElement.classList.contains('skip')), 'Tab llega primero a "saltar al contenido"');

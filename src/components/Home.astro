@@ -7,6 +7,7 @@ import { es } from '../i18n/es';
 import { en } from '../i18n/en';
 import { COP_PRICES, DEMOS, SECTOR_THEME, USD_PRICES, demoSrcset, wa, type PackageId, type SectorId } from '../i18n/shared';
 import { EVENTS_ENDPOINT_ENABLED, SITE_URL, WHATSAPP_NUMBER } from '../../site.config.mjs';
+import { existsSync } from 'node:fs';
 
 interface Props { lang: 'es' | 'en' }
 const { lang } = Astro.props;
@@ -69,6 +70,8 @@ const jsonLd = {
   ],
 };
 const pkg = t.pricing.packages;
+// Tu foto: guarda public/assets/foto-david.webp (4:5) y aparece sola en el próximo build. Sin archivo, se ve el monograma.
+const hasPhoto = existsSync('public/assets/foto-david.webp');
 ---
 <Base
   lang={lang}
@@ -93,20 +96,29 @@ const pkg = t.pricing.packages;
         <a href="#paquetes">{t.nav.packages}</a>
         <a href="#preguntas">{t.nav.faq}</a>
         <a href={t.otherHome} hreflang={isEs ? 'en' : 'es'} lang={isEs ? 'en' : 'es'} aria-label={t.otherFull}>{t.otherLabel}</a>
+        <button class="menu-btn" type="button" aria-label={t.nav.menuLabel} aria-haspopup="dialog" data-menu-open>{t.nav.menu}</button>
       </nav>
     </header>
+
+    <dialog class="menu" data-menu aria-label={t.nav.menu}>
+      <div class="menu-top">
+        <svg class="menu-logo" viewBox={`0 0 ${logo.w} 68`} aria-hidden="true"><path fill="currentColor" d={logo.bubble} /><path class="menu-logo-cut" d={logo.d} /><path fill="currentColor" d={logo.name} /><path fill="currentColor" d={logo.tag[lang]} /></svg>
+        <button class="menu-close" type="button" aria-label={t.nav.close} data-menu-close autofocus><svg aria-hidden="true"><use href="#i-close" /></svg></button>
+      </div>
+      <nav aria-label={t.nav.menu}>
+        <ul class="menu-links">
+          <li><a href="#demos" data-menu-link>{t.nav.demos}</a></li>
+          <li><a href="#paquetes" data-menu-link>{t.nav.packages}</a></li>
+          <li><a href="#preguntas" data-menu-link>{t.nav.faq}</a></li>
+          <li><a href="#escribeme" data-menu-link>{t.nav.cta}</a></li>
+        </ul>
+      </nav>
+      <p class="menu-strip">{t.strip}</p>
+    </dialog>
 
     <main id="main">
       <section class="hero" id="hero" aria-labelledby="hero-title">
         <div class="hero-copy">
-          <fieldset class="picker">
-            <legend>{t.hero.question}</legend>
-            <div class="chips">
-              {sectorIds.map((id) => (
-                <label class="chip"><input type="radio" name="sector" value={id} /><span>{t.sectors[id].chip}</span></label>
-              ))}
-            </div>
-          </fieldset>
           <div class="hero-swap" aria-live="polite">
             <h1 id="hero-title" data-h-title>{general.title}</h1>
             <p class="hero-sub" data-h-sub>{general.sub}</p>
@@ -119,6 +131,15 @@ const pkg = t.pricing.packages;
             <a class="text-link" href="#demos" data-hero-demos data-default={t.hero.secondary} data-this={t.hero.seeThis}>{t.hero.secondary}</a>
             <a class="text-link" href="#paquetes">{t.hero.priceLink}</a>
           </div>
+          <fieldset class="picker">
+            <legend>{t.hero.question}</legend>
+            <p class="picker-sub">{t.hero.pickerSub}</p>
+            <div class="chips">
+              {sectorIds.map((id) => (
+                <label class="chip"><input type="radio" name="sector" value={id} /><span>{t.sectors[id].chip}</span></label>
+              ))}
+            </div>
+          </fieldset>
         </div>
         <div class="hero-stage">
           <div class="hero-side">
@@ -354,9 +375,13 @@ const pkg = t.pricing.packages;
 
     <section class="about" id="sobre-mi" aria-labelledby="about-title">
       <div class="wrap about-grid">
-        <div class="portrait" role="img" aria-label={t.about.photoAlt} data-reveal><span aria-hidden="true">DH</span></div>
+        <div class="about-head">
+          {hasPhoto
+            ? <img class="about-photo" src="/assets/foto-david.webp" width="800" height="1000" alt={t.about.photoAlt} loading="lazy" decoding="async" />
+            : <span class="monogram" role="img" aria-label={t.about.monogramAlt}><span aria-hidden="true">DH</span></span>}
+          <h2 id="about-title" class="h-big">{t.about.title}</h2>
+        </div>
         <div class="about-text">
-          <h2 id="about-title" class="h-big" data-reveal>{t.about.title}</h2>
           {t.about.paragraphs.map((p) => <p class="about-p" data-reveal>{p}</p>)}
           <h3 data-reveal>{t.about.workTitle}</h3>
           <ul class="about-work" data-reveal>{t.about.work.map((w) => <li>{w}</li>)}</ul>

@@ -14,9 +14,9 @@ export const en: Copy = {
     description: 'Custom websites that bring customers to your WhatsApp. Try working demos, run your own numbers and get a free sample for your business in 48 hours.',
     ogAlt: 'David Hernández, websites for businesses. A website that brings customers to your WhatsApp.',
   },
-  strip: 'I reply within 2 hours, Monday to Saturday',
+  strip: 'I reply the same day, Monday to Saturday',
   skip: 'Skip to content',
-  nav: { demos: 'Demos', packages: 'Pricing', faq: 'Questions', cta: 'Message me' },
+  nav: { demos: 'Demos', packages: 'Pricing', faq: 'Questions', cta: 'Message me', menu: 'Menu', menuLabel: 'Open the menu', close: 'Close the menu' },
   wa: {
     base: 'Hi David, I saw your site and I’d like a website for my',
     fallbackNoun: 'business',
@@ -32,6 +32,7 @@ export const en: Copy = {
   },
   hero: {
     question: 'What kind of business do you run?',
+    pickerSub: 'See what yours could look like',
     primary: 'Message me on WhatsApp',
     secondary: 'See the demos',
     seeThis: 'Open this demo',
@@ -188,7 +189,7 @@ export const en: Copy = {
     title: 'Pricing',
     intro: 'Approximate US dollar prices (1 USD = 3,160 COP). The “from” only moves if you ask for something beyond the package, and I’ll tell you before we start.',
     from: 'from',
-    badge: 'Most chosen',
+    badge: 'Recommended',
     tabsLabel: 'Compare packages',
     ctaPrefix: 'I want',
     packages: {
@@ -211,7 +212,8 @@ export const en: Copy = {
   },
   about: {
     title: 'I’m David.',
-    photoAlt: 'Space for David Hernández’s photo, showing his initials for now',
+    photoAlt: 'David Hernández',
+    monogramAlt: 'David Hernández’s initials',
     paragraphs: [
       'David Hernández Castro, based in Colombia and studying systems engineering. I build websites for service businesses because too many good ones live and die by Instagram and word of mouth.',
       'I don’t have a long client list to show you yet. So I give you demos you can actually use, and a free sample before you pay a cent.',
@@ -238,7 +240,7 @@ export const en: Copy = {
   close: {
     word: 'Message',
     wordLabel: 'Message me on WhatsApp',
-    lead: 'One message is all it takes. I reply within 2 hours, Monday to Saturday.',
+    lead: 'One message is all it takes. I reply the same day, Monday to Saturday.',
     formTitle: 'Rather tell me a bit more?',
     formIntro: 'Fill this in and I’ll have your message ready. Nothing is sent until you hit send in your WhatsApp.',
     name: 'Your name',
@@ -252,7 +254,7 @@ export const en: Copy = {
     consentB: '.',
     submit: 'Open WhatsApp with my message',
     previewLabel: 'Your message so far',
-    reply: 'I reply within 2 hours, Monday to Saturday.',
+    reply: 'I reply the same day, Monday to Saturday.',
     errors: {
       name: 'Please enter your name.',
       business: 'Please enter your business name.',

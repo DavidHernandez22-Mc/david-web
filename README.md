@@ -30,8 +30,8 @@ npm run brand     # regenera logo, favicon e imágenes para compartir
 - **Dominio, WhatsApp, analítica:** `site.config.mjs`. Es el único archivo que hay que tocar al comprar el dominio. Recuerda actualizar también `SITE_URL` en Cloudflare si usas redirecciones.
 - **Textos:** `src/i18n/es.ts` y `src/i18n/en.ts`.
 - **Demos, colores por sector y precios:** `src/i18n/shared.ts`.
-- **Tu foto:** en `src/components/Home.astro`, busca `class="portrait"` y cambia el bloque con las iniciales por un `<img>` en proporción 4:5.
-- **Encender Lumen cuando vuelva a estar en línea:** en `src/i18n/shared.ts` pon `live: true` en `estetica`. Luego corre `npm run capture` para actualizar la captura con la versión publicada.
+- **Tu foto:** guarda tu foto como `public/assets/foto-david.webp`, vertical en proporción 4:5 (por ejemplo 800 × 1000 px), y vuelve a hacer el build. Si el archivo existe se muestra la foto; si no, el monograma DH.
+- **Apagar o encender una demo:** en `src/i18n/shared.ts`, `live: false` hace que su tarjeta lleve a WhatsApp en vez de abrir la demo. Después de cambiar una demo, corre `npm run capture` para actualizar sus capturas.
 
 ## Enlaces por sector
 

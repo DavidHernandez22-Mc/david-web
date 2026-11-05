@@ -14,9 +14,9 @@ export const es = {
     description: 'Diseño webs a la medida de tu sector que traen clientes por WhatsApp. Mira demos reales, calcula si te da y recibe un ejemplo gratis en 48 horas.',
     ogAlt: 'David Hernández, webs para negocios. Tu negocio, con una web que trae clientes por WhatsApp.',
   },
-  strip: 'Respondo en menos de 2 horas, de lunes a sábado',
+  strip: 'Respondo el mismo día, de lunes a sábado',
   skip: 'Saltar al contenido',
-  nav: { demos: 'Demos', packages: 'Paquetes', faq: 'Preguntas', cta: 'Escríbeme' },
+  nav: { demos: 'Demos', packages: 'Paquetes', faq: 'Preguntas', cta: 'Escríbeme', menu: 'Menú', menuLabel: 'Abrir el menú', close: 'Cerrar el menú' },
   wa: {
     base: 'Hola David, vi tu página y quiero una web para mi',
     fallbackNoun: 'negocio',
@@ -32,6 +32,7 @@ export const es = {
   },
   hero: {
     question: '¿Qué negocio tienes?',
+    pickerSub: 'Mira cómo se vería la tuya',
     primary: 'Escríbeme por WhatsApp',
     secondary: 'Ver demos',
     seeThis: 'Ver esta demo',
@@ -188,7 +189,7 @@ export const es = {
     title: 'Paquetes',
     intro: 'Precios en pesos colombianos. El “desde” cambia solo si me pides algo fuera de lo que dice cada paquete, y te lo digo antes de empezar.',
     from: 'desde',
-    badge: 'El más elegido',
+    badge: 'Recomendado',
     tabsLabel: 'Comparar paquetes',
     ctaPrefix: 'Quiero',
     packages: {
@@ -211,7 +212,8 @@ export const es = {
   },
   about: {
     title: 'Soy David.',
-    photoAlt: 'Espacio para la foto de David Hernández, por ahora con sus iniciales',
+    photoAlt: 'David Hernández',
+    monogramAlt: 'Iniciales de David Hernández',
     paragraphs: [
       'David Hernández Castro. Ingeniero de sistemas en formación. Diseño webs para negocios en Colombia porque veo muchos negocios buenos que dependen de Instagram y del voz a voz.',
       'Aún no tengo una lista larga de clientes para mostrarte. Por eso te enseño demos que puedes usar y te hago un ejemplo gratis antes de que pagues un peso.',
@@ -238,7 +240,7 @@ export const es = {
   close: {
     word: 'Escríbeme',
     wordLabel: 'Escríbeme por WhatsApp',
-    lead: 'Un mensaje y ya. Te respondo en menos de 2 horas, de lunes a sábado.',
+    lead: 'Un mensaje y ya. Te respondo el mismo día, de lunes a sábado.',
     formTitle: '¿Prefieres contarme un poco más?',
     formIntro: 'Llena esto y te dejo el mensaje listo. Nada se envía hasta que le des enviar en tu WhatsApp.',
     name: 'Tu nombre',
@@ -252,7 +254,7 @@ export const es = {
     consentB: '.',
     submit: 'Abrir WhatsApp con mi mensaje',
     previewLabel: 'Así va tu mensaje',
-    reply: 'Te respondo en menos de 2 horas, de lunes a sábado.',
+    reply: 'Te respondo el mismo día, de lunes a sábado.',
     errors: {
       name: 'Escribe tu nombre.',
       business: 'Escribe el nombre de tu negocio.',

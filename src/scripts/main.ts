@@ -22,16 +22,51 @@ const $$ = <T extends Element = HTMLElement>(s: string, r: ParentNode = document
 const reduced = matchMedia('(prefers-reduced-motion: reduce)').matches;
 
 /* ---------- Entradas al hacer scroll: una vez, y rápidas ----------
-   Va primero y solo esconde el contenido cuando ya puede mostrarlo (clase reveal-ready).
-   Si algo más adelante falla, ninguna sección se queda en blanco. */
-if (!reduced && 'IntersectionObserver' in window) {
-  const io = new IntersectionObserver((es) => {
-    es.forEach((e) => {
-      if (e.isIntersecting) { e.target.classList.add('is-in'); io.unobserve(e.target); }
+   Todo es visible por defecto. Solo los bloques que al cargar están debajo de la pantalla
+   reciben will-reveal, y el mismo observador que se la puso se la quita al llegar a ellos.
+   Si algo falla, ningún bloque se queda escondido. */
+// Un bloque se muestra apenas su borde superior llega a la pantalla, y también si quedó
+// por encima porque el visitante saltó (ancla, menú o deslizamiento rápido). Nunca se queda oculto.
+if (!reduced) {
+  let pending = $$('[data-reveal]').filter((el) => el.getBoundingClientRect().top > innerHeight);
+  pending.forEach((el) => el.classList.add('will-reveal'));
+  let queued = false;
+  const check = () => {
+    queued = false;
+    const limit = innerHeight * 0.94;
+    pending = pending.filter((el) => {
+      if (el.getBoundingClientRect().top < limit) { el.classList.remove('will-reveal'); return false; }
+      return true;
     });
-  }, { rootMargin: '0px 0px -6% 0px', threshold: 0.05 });
-  $$('[data-reveal]').forEach((el) => io.observe(el));
-  document.documentElement.classList.add('reveal-ready');
+    if (!pending.length) removeEventListener('scroll', onScroll);
+  };
+  const onScroll = () => { if (!queued) { queued = true; requestAnimationFrame(check); } };
+  addEventListener('scroll', onScroll, { passive: true });
+  addEventListener('hashchange', check);
+  addEventListener('beforeprint', () => pending.forEach((el) => el.classList.remove('will-reveal')));
+}
+
+/* ---------- Menú en celular: pantalla completa, se cierra al tocar un enlace ---------- */
+const menu = $<HTMLDialogElement>('[data-menu]');
+if (menu) {
+  $('[data-menu-open]')?.addEventListener('click', () => menu.showModal());
+  $('[data-menu-close]')?.addEventListener('click', () => menu.close());
+  $$<HTMLAnchorElement>('[data-menu-link]', menu).forEach((a) => {
+    a.addEventListener('click', (e) => {
+      e.preventDefault();
+      menu.close();
+      // Salto directo: el menú tapa la pantalla al cerrarse y un scroll suave de varias
+      // pantallas tardaría segundos. El foco pasa a la sección para quien usa teclado.
+      const target = document.querySelector<HTMLElement>(a.hash);
+      requestAnimationFrame(() => {
+        if (!target) return;
+        target.scrollIntoView({ behavior: 'instant' });
+        target.setAttribute('tabindex', '-1');
+        target.focus({ preventScroll: true });
+        history.replaceState(null, '', a.hash);
+      });
+    });
+  });
 }
 
 /* ---------- Eventos: Cloudflare no guarda nada que identifique a la persona ---------- */
@@ -121,6 +156,10 @@ function setSector(id: string, opts: { silent?: boolean } = {}) {
   const copy = data.sectors[id];
   applyTheme(id);
   const swap = () => {
+    // En celular el selector está debajo del titular: si el titular cambia de alto,
+    // se compensa el scroll para que los botones no se muevan bajo el dedo.
+    const picker = $('.picker');
+    const before = picker?.getBoundingClientRect().top ?? 0;
     heroTitle.textContent = copy.title;
     heroSub.textContent = copy.sub;
     heroList.innerHTML = '';
@@ -132,6 +171,8 @@ function setSector(id: string, opts: { silent?: boolean } = {}) {
       li.append(span);
       heroList.append(li);
     });
+    const shift = (picker?.getBoundingClientRect().top ?? 0) - before;
+    if (shift && !opts.silent && matchMedia('(max-width: 899px)').matches) window.scrollBy({ top: shift, behavior: 'instant' });
   };
   const swapEls = [heroTitle, heroSub, heroList];
   if (reduced || opts.silent) {
