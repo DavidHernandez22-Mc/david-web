@@ -377,7 +377,7 @@ const hasPhoto = existsSync('public/assets/foto-david.webp');
       <div class="wrap about-grid">
         <div class="about-head">
           {hasPhoto
-            ? <img class="about-photo" src="/assets/foto-david.webp" width="800" height="1000" alt={t.about.photoAlt} loading="lazy" decoding="async" />
+            ? <img class="about-photo" src="/assets/foto-david.webp" width="600" height="750" alt={t.about.photoAlt} loading="lazy" decoding="async" />
             : <span class="monogram" role="img" aria-label={t.about.monogramAlt}><span aria-hidden="true">DH</span></span>}
           <h2 id="about-title" class="h-big">{t.about.title}</h2>
         </div>
