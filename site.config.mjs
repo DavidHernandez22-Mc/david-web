@@ -2,6 +2,9 @@
 // Lo leen astro.config, canonical, og:url, og:image, sitemap, robots, hreflang y los datos estructurados.
 export const SITE_URL = 'https://david-web.castrod2207.workers.dev';
 
+// Correo de contacto que aparece en la política de privacidad.
+export const CONTACT_EMAIL = 'castrod2207@gmail.com';
+
 // Sin "+" ni espacios. Solo se usa dentro de enlaces de WhatsApp, nunca como texto visible.
 export const WHATSAPP_NUMBER = '573008564773';
 

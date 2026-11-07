@@ -2,9 +2,12 @@
 import Base from '../layouts/Base.astro';
 import { es } from '../i18n/es';
 import { en } from '../i18n/en';
+import { CONTACT_EMAIL } from '../../site.config.mjs';
 interface Props { lang: 'es' | 'en'; path: string; altPath: string }
 const { lang, path, altPath } = Astro.props;
 const t = lang === 'es' ? es : en;
+// {email} en los textos se reemplaza por un enlace al correo de site.config.mjs.
+const parts = (text: string) => text.split('{email}');
 ---
 <Base lang={lang} title={t.privacy.metaTitle} description={t.privacy.metaDescription} ogImage={lang === 'es' ? '/og-es.png' : '/og-en.png'} ogAlt={t.meta.ogAlt} path={path} altPath={altPath}>
   <main class="legal">
@@ -12,7 +15,13 @@ const t = lang === 'es' ? es : en;
     <h1>{t.privacy.title}</h1>
     <p class="legal-date">{t.privacy.updated}</p>
     {t.privacy.sections.map((s) => (
-      <section><h2>{s.h}</h2>{s.p.map((p) => <p>{p}</p>)}</section>
+      <section>
+        <h2>{s.h}</h2>
+        {s.p.map((p) => (
+          <p>{parts(p).map((chunk, i) => (i === 0 ? chunk : <><a href={`mailto:${CONTACT_EMAIL}`}>{CONTACT_EMAIL}</a>{chunk}</>))}</p>
+        ))}
+      </section>
     ))}
+    <p class="legal-effective">{t.privacy.effective}</p>
   </main>
 </Base>

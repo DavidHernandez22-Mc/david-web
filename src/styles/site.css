@@ -539,3 +539,5 @@ html[lang='en'] .close-big { font-size: calc((100vw - var(--gutter) * 2) / 3.86)
   .nf-big { font-size: 34vw; }
 }
 section[tabindex="-1"]:focus { outline: none; }
+.legal section a { font-weight: 600; text-underline-offset: .2em; overflow-wrap: anywhere; }
+.legal-effective { margin-top: 40px; font-weight: 600; }
