@@ -6,9 +6,9 @@ import { chromium } from 'playwright';
 const demos = {
   odontologia: 'https://odontologiademo1.netlify.app',
   restaurante: 'https://restauranteejemplodc.netlify.app',
-  inmobiliaria: 'https://altamira-demo.vercel.app',
-  veterinaria: 'https://arrayan-vet-demo.vercel.app',
-  estetica: process.env.LUMEN_URL || 'https://lumen-estetica-demo.vercel.app',
+  inmobiliaria: 'https://inmobiliaria-demo.castrod2207.workers.dev',
+  veterinaria: 'https://veterinaria-demo.castrod2207.workers.dev',
+  estetica: process.env.LUMEN_URL || 'https://estetica-demo.castrod2207.workers.dev',
 };
 const views = {
   mobile: { viewport: { width: 390, height: 844 }, deviceScaleFactor: 2, isMobile: true, hasTouch: true },

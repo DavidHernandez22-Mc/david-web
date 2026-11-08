@@ -79,7 +79,8 @@ for (const [path, L] of [['/', { base: 'Hola David, vi tu página y quiero una w
     }
     ok(loaded, `iframe carga contenido de ${id}`);
     const tab = await page.$eval('[data-viewer-tab]', (a) => a.href);
-    ok(/\.(app)\/?$/.test(tab), `botón pestaña nueva con URL (${tab})`);
+    const demoUrl = await page.$eval(`[data-demo-open="${id}"]`, (a) => a.href);
+    ok(tab === demoUrl && tab.startsWith('https://'), `botón pestaña nueva con URL de ${id} (${tab})`);
     const want = await page.$eval('[data-viewer-want]', (a) => a.href);
     ok(text(want).startsWith(L.base), `"Quiero una así": "${text(want)}"`);
     await page.tap('[data-viewer-close]');
