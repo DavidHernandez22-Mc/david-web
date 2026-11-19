@@ -1,6 +1,6 @@
 // Único archivo que hay que tocar al comprar el dominio o cambiar datos de contacto.
 // Lo leen astro.config, canonical, og:url, og:image, sitemap, robots, hreflang y los datos estructurados.
-export const SITE_URL = 'https://david-web.castrod2207.workers.dev';
+export const SITE_URL = 'https://davidhcwebs.com';
 
 // Correo de contacto que aparece en la política de privacidad.
 export const CONTACT_EMAIL = 'castrod2207@gmail.com';

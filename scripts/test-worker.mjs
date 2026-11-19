@@ -28,5 +28,24 @@ r = await worker.fetch(new Request('https://x.dev/'), env);
 ok((await r.text()) === 'asset', 'cualquier otra ruta va a los archivos estáticos');
 r = await worker.fetch(post({ name: 'demo_open', label: 'lumen' }), { ASSETS: env.ASSETS });
 ok(r.status === 204, 'sin binding EVENTS: responde 204 igual');
+// Redirecciones al dominio principal
+const go = (u, init) => worker.fetch(new Request(u, init), env);
+for (const [from, to] of [
+  ['https://www.davidhcwebs.com/', 'https://davidhcwebs.com/'],
+  ['https://www.davidhcwebs.com/en/?negocio=veterinaria', 'https://davidhcwebs.com/en/?negocio=veterinaria'],
+  ['https://david-web.castrod2207.workers.dev/privacidad/', 'https://davidhcwebs.com/privacidad/'],
+  ['https://david-web.castrod2207.workers.dev/?negocio=restaurante&x=1', 'https://davidhcwebs.com/?negocio=restaurante&x=1'],
+  ['http://davidhcwebs.com/en/', 'https://davidhcwebs.com/en/'],
+]) {
+  r = await go(from);
+  ok(r.status === 301 && r.headers.get('Location') === to, `${from} → 301 ${r.headers.get('Location')}`);
+}
+r = await go('https://davidhcwebs.com/');
+ok(r.status === 200 && (await r.text()) === 'asset', 'https://davidhcwebs.com/ se sirve sin redirigir');
+r = await go('http://localhost:8787/');
+ok(r.status === 200, 'localhost no redirige');
+const before = points.length;
+r = await go('https://davidhcwebs.com/api/event', { method: 'POST', body: JSON.stringify({ name: 'whatsapp_click', label: 'hero', lang: 'es' }) });
+ok(r.status === 204 && points.length === before + 1, 'evento en davidhcwebs.com se guarda');
 console.log(fails ? `\n${fails} FALLOS` : '\nTODO OK');
 process.exit(fails ? 1 : 0);

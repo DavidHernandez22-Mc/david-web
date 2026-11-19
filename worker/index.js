@@ -1,14 +1,30 @@
-// Worker del sitio. Solo atiende /api/* (ver run_worker_first en wrangler.jsonc): todo lo demás
-// lo sirve Cloudflare directo desde dist/, con la 404 propia, sin pasar por aquí.
+// Worker del sitio. Atiende todas las peticiones (run_worker_first: true en wrangler.jsonc):
 //
-// POST /api/event guarda un evento en Workers Analytics Engine (binding EVENTS).
-// No guarda IP, cookies ni nada que identifique a la persona: solo el evento, un detalle corto,
-// el idioma de la página y el país aproximado que ya calcula Cloudflare.
+// 1. Dominio único: www.davidhcwebs.com y la dirección vieja de workers.dev redirigen con 301
+//    a https://davidhcwebs.com, conservando la ruta y los parámetros. HTTP pasa a HTTPS.
+// 2. POST /api/event guarda un evento en Workers Analytics Engine (binding EVENTS).
+//    No guarda IP, cookies ni nada que identifique a la persona: solo el evento, un detalle corto,
+//    el idioma de la página y el país aproximado que ya calcula Cloudflare.
+// 3. Todo lo demás se sirve desde dist/ (con _headers y la 404 propia) a través de env.ASSETS.
+import { SITE_URL } from '../site.config.mjs';
+
+const CANONICAL_HOST = new URL(SITE_URL).host;
+// Direcciones que deben llevar siempre al dominio principal.
+const REDIRECT_HOSTS = new Set([`www.${CANONICAL_HOST}`, 'david-web.castrod2207.workers.dev']);
 
 const ALLOWED = new Set(['whatsapp_click', 'demo_open', 'package_click', 'page_view']);
 const MAX_BODY = 1024;
 
 const clean = (value, max) => String(value ?? '').replace(/[^\p{L}\p{N}/?=._-]/gu, '').slice(0, max);
+
+export function canonicalRedirect(url) {
+  const toCanonical = REDIRECT_HOSTS.has(url.hostname) || (url.hostname === CANONICAL_HOST && url.protocol === 'http:');
+  if (!toCanonical) return null;
+  return new Response(null, {
+    status: 301,
+    headers: { Location: `https://${CANONICAL_HOST}${url.pathname}${url.search}`, 'Cache-Control': 'public, max-age=86400' },
+  });
+}
 
 export async function handleEvent(request, env) {
   if (request.method !== 'POST') {
@@ -35,10 +51,11 @@ export async function handleEvent(request, env) {
 
 export default {
   async fetch(request, env) {
-    const { pathname } = new URL(request.url);
-    if (pathname === '/api/event') return handleEvent(request, env);
-    if (pathname.startsWith('/api/')) return new Response('Not found', { status: 404 });
-    // Por si alguna ruta llegara aquí: se sirve igual que el sitio estático.
+    const url = new URL(request.url);
+    const redirect = canonicalRedirect(url);
+    if (redirect) return redirect;
+    if (url.pathname === '/api/event') return handleEvent(request, env);
+    if (url.pathname.startsWith('/api/')) return new Response('Not found', { status: 404 });
     return env.ASSETS.fetch(request);
   },
 };

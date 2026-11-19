@@ -14,7 +14,8 @@ El sitio se publica como Worker con archivos estáticos. Workers Builds corre `n
 
 - `not_found_handling: "404-page"` hace que una URL inexistente responda 404 con la página propia: `/en/...` usa la versión en inglés (`dist/en/404.html`) y el resto la de español.
 - Las cabeceras de seguridad y caché están en `public/_headers`.
-- `worker/index.js` es la entrada del Worker: solo atiende `/api/*` (guarda clics y visitas). Todo lo demás, incluida la 404, lo sirve Cloudflare directo desde `dist/`.
+- `worker/index.js` es la entrada del Worker y recibe todas las peticiones: redirige con 301 `www.davidhcwebs.com` y `david-web.castrod2207.workers.dev` a `https://davidhcwebs.com` (con ruta y parámetros), guarda clics y visitas en `/api/event` y entrega el resto desde `dist/` (con `_headers` y la 404 propia).
+- Dominio: `davidhcwebs.com` y `www.davidhcwebs.com` están como *custom domains* en `routes` de `wrangler.jsonc`.
 
 Para probar el Worker en local: `npm run build && npx wrangler dev`.
 
@@ -32,7 +33,7 @@ npm run brand     # regenera logo, favicon e imágenes para compartir
 
 ## Lo que vas a querer cambiar
 
-- **Dominio, WhatsApp, analítica:** `site.config.mjs`. Es el único archivo que hay que tocar al comprar el dominio. Recuerda actualizar también `SITE_URL` en Cloudflare si usas redirecciones.
+- **Dominio, WhatsApp, analítica:** `site.config.mjs`. El dominio de `SITE_URL` también define a dónde redirige el Worker.
 - **Textos:** `src/i18n/es.ts` y `src/i18n/en.ts`.
 - **Demos, colores por sector y precios:** `src/i18n/shared.ts`.
 - **Tu foto:** está en `public/assets/foto-david.webp` (576 × 720, 4:5). Para cambiarla, guarda otra foto vertical 4:5 con ese nombre y vuelve a hacer el build; `scripts/foto-david.mjs` muestra cómo se recortó y desenfocó esta. Si el archivo no existe, se ve el monograma DH.
@@ -68,7 +69,7 @@ Muestra totales por evento, el detalle de cada uno y las visitas por país. Los 
 
 ### Visitas con Cloudflare Web Analytics (falta el token)
 
-1. En Cloudflare: Analytics & Logs → Web Analytics → Add a site, con el nombre `david-web.castrod2207.workers.dev`.
+1. En Cloudflare: Analytics & Logs → Web Analytics → Add a site, con el nombre `davidhcwebs.com`.
 2. Elige la instalación manual (JS snippet) y copia el valor de `"token"`.
 3. Pégalo en `CF_ANALYTICS_TOKEN`, dentro de `site.config.mjs`, y haz commit y push.
 
