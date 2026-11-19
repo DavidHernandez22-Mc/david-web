@@ -1,13 +1,17 @@
 // Prueba de principio a fin contra el build servido. Uso: node scripts/e2e.mjs [base]
+// npm test la corre con base https://davidhcwebs.com y E2E_MAP_TO=127.0.0.1:puerto: el navegador
+// cree estar en el dominio real (así cargan las demos que solo se dejan mostrar en davidhcwebs.com),
+// pero todo lo sirve el Worker local.
 import { chromium } from 'playwright';
 const base = process.argv[2] || 'http://localhost:4321';
-const browser = await chromium.launch();
+const MAP = process.env.E2E_MAP_TO;
+const browser = await chromium.launch(MAP ? { args: [`--host-resolver-rules=MAP ${new URL(base).hostname} ${MAP}`] } : {});
 let fails = 0;
 const ok = (c, m) => { console.log(c ? 'ok  ' : 'FAIL', m); if (!c) fails++; };
 const text = (u) => new URL(u).searchParams.get('text') || '';
 
 for (const [path, L] of [['/', { base: 'Hola David, vi tu página y quiero una web para mi', vet: 'veterinaria', vetVal: 'veterinaria', pack: 'Profesional', months: 'meses', title: 'Tu veterinaria' }], ['/en/', { base: 'Hi David, I saw your site and I’d like a website for my', vet: 'vet clinic', vetVal: 'veterinaria', pack: 'Professional', months: 'months', title: 'vet clinic' }]]) {
-  const ctx = await browser.newContext({ viewport: { width: 390, height: 780 }, isMobile: true, hasTouch: true, deviceScaleFactor: 2 });
+  const ctx = await browser.newContext({ ignoreHTTPSErrors: true, viewport: { width: 390, height: 780 }, isMobile: true, hasTouch: true, deviceScaleFactor: 2 });
   const page = await ctx.newPage();
   const errors = [];
   page.on('pageerror', (e) => errors.push(e.message));
@@ -150,7 +154,7 @@ for (const [path, L] of [['/', { base: 'Hola David, vi tu página y quiero una w
 // Con animaciones activas (como en un celular normal): cada enlace con sector, sin errores
 // y sin ninguna sección en blanco después de recorrer la página.
 for (const path of ['/', '/en/', ...['odontologia', 'estetica', 'veterinaria', 'inmobiliaria', 'restaurante', 'otro', 'inventado'].map((s) => `/?negocio=${s}`), '/en/?negocio=estetica']) {
-  const mc = await browser.newContext({ viewport: { width: 390, height: 780 }, isMobile: true, hasTouch: true, reducedMotion: 'no-preference' });
+  const mc = await browser.newContext({ ignoreHTTPSErrors: true, viewport: { width: 390, height: 780 }, isMobile: true, hasTouch: true, reducedMotion: 'no-preference' });
   const mp = await mc.newPage();
   const errs = [];
   mp.on('pageerror', (e) => errs.push(e.message));
@@ -170,7 +174,7 @@ for (const path of ['/', '/en/', ...['odontologia', 'estetica', 'veterinaria', '
 
 // Saltos (ancla, menú) con animaciones activas: nada queda oculto por encima de la pantalla.
 {
-  const jc = await browser.newContext({ viewport: { width: 390, height: 780 }, isMobile: true, hasTouch: true, reducedMotion: 'no-preference' });
+  const jc = await browser.newContext({ ignoreHTTPSErrors: true, viewport: { width: 390, height: 780 }, isMobile: true, hasTouch: true, reducedMotion: 'no-preference' });
   const jp = await jc.newPage();
   for (const hash of ['#demos', '#paquetes', '#preguntas', '#escribeme']) {
     await jp.goto(base + '/', { waitUntil: 'load' });
@@ -183,7 +187,7 @@ for (const path of ['/', '/en/', ...['odontologia', 'estetica', 'veterinaria', '
 }
 
 // Enlace directo a un sector, 404, teclado y movimiento reducido
-const ctx = await browser.newContext({ viewport: { width: 1280, height: 800 }, reducedMotion: 'reduce' });
+const ctx = await browser.newContext({ ignoreHTTPSErrors: true, viewport: { width: 1280, height: 800 }, reducedMotion: 'reduce' });
 const page = await ctx.newPage();
 await page.goto(base + '/?negocio=restaurante');
 ok(await page.evaluate(() => document.querySelector('.picker').getBoundingClientRect().top < document.querySelector('h1').getBoundingClientRect().top), 'en computador el selector sigue arriba del titular');
@@ -194,7 +198,7 @@ ok(await page.evaluate(() => document.activeElement.classList.contains('skip')),
 ok(await page.$eval('[data-reveal]', (e) => getComputedStyle(e).opacity === '1'), 'movimiento reducido: contenido visible sin animar');
 const res = await page.goto(base + '/no-existe/');
 ok(res.status() === 404 && (await page.textContent('h1')).length > 3, `404 con personalidad (${res.status()})`);
-const c2 = await browser.newContext({ javaScriptEnabled: false, viewport: { width: 390, height: 780 } });
+const c2 = await browser.newContext({ ignoreHTTPSErrors: true, javaScriptEnabled: false, viewport: { width: 390, height: 780 } });
 const p2 = await c2.newPage();
 await p2.goto(base + '/');
 ok(await p2.$eval('[data-reveal]', (e) => getComputedStyle(e).opacity === '1'), 'sin JavaScript: contenido visible');

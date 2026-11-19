@@ -1,0 +1,3 @@
+#!/bin/sh
+# Antes de cada commit: lint y pruebas del Worker (rápidas). Si fallan, no hay commit.
+npm run lint --silent && npm run test:worker --silent || { echo "\n✖ Commit detenido: arregla los errores de arriba."; exit 1; }

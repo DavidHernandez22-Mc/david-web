@@ -77,7 +77,20 @@ Ahí verás visitas, páginas, países, dispositivos y de dónde llega la gente.
 
 ## Pruebas
 
-Con `npm run preview` corriendo:
+```bash
+npm test
+```
+
+Corre en orden lint, pruebas del Worker, build y e2e, y se detiene en la primera que falle. El e2e se hace contra el Worker local (`wrangler dev` en HTTPS) con el navegador creyendo estar en `davidhcwebs.com`, así que ve los mismos encabezados, CSP, 404 y redirecciones que en producción, y las demos que solo se dejan mostrar en `davidhcwebs.com` cargan en el visor. Necesita internet, porque las demos son externas.
+
+**Nada en rojo llega a GitHub.** `npm install` activa los hooks de `.githooks/`:
+
+- `pre-commit`: lint y pruebas del Worker. Si fallan, no hay commit.
+- `pre-push`: `npm test` completo. Si algo falla, no hay push, y como Cloudflare publica desde `main`, tampoco se publica.
+
+Saltarlos (`--no-verify`) es posible, pero no lo hagas.
+
+Pruebas sueltas, con `npm run preview` corriendo:
 
 ```bash
 node scripts/e2e.mjs          # selector, visor, calculadora, WhatsApp, formulario

@@ -1,0 +1,3 @@
+#!/bin/sh
+# Antes de cada push: todas las pruebas (npm test). Si alguna falla, no se sube nada.
+npm test || { echo "\n✖ Push detenido: hay pruebas en rojo."; exit 1; }
