@@ -7,7 +7,7 @@ const demos = {
   odontologia: 'https://odontologia.davidhcwebs.com',
   restaurante: 'https://restaurante.davidhcwebs.com',
   inmobiliaria: 'https://inmobiliaria.davidhcwebs.com',
-  veterinaria: 'https://veterinaria-demo.castrod2207.workers.dev',
+  veterinaria: 'https://veterinaria.davidhcwebs.com',
   estetica: process.env.LUMEN_URL || 'https://estetica-demo.castrod2207.workers.dev',
 };
 const views = {
