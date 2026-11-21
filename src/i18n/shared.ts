@@ -23,7 +23,7 @@ export interface DemoMeta {
 // Para volver a encender Lumen: publícala en esa URL y cambia live a true.
 export const DEMOS: DemoMeta[] = [
   { id: 'odontologia', name: 'Clínica Dental Chicó', url: 'https://odontologia.davidhcwebs.com', bilingual: true, live: true, iframe: true, bg: '#1c2b27', ink: '#f1f1ec', btn: '#ebebe7', btnInk: '#14211d' },
-  { id: 'restaurante', name: 'La Plancha 70', url: 'https://restauranteejemplodc.netlify.app', live: true, iframe: true, bg: '#c81e12', ink: '#ffffff', btn: '#f7b91c', btnInk: '#1b110c' },
+  { id: 'restaurante', name: 'La Plancha 70', url: 'https://restaurante.davidhcwebs.com', live: true, iframe: true, bg: '#c81e12', ink: '#ffffff', btn: '#f7b91c', btnInk: '#1b110c' },
   { id: 'inmobiliaria', name: 'Altamira Propiedades', url: 'https://inmobiliaria-demo.castrod2207.workers.dev', live: true, iframe: true, bg: '#dedad3', ink: '#0f0f0d', btn: '#235a4c', btnInk: '#ffffff' },
   { id: 'veterinaria', name: 'Arrayán Clínica Veterinaria', url: 'https://veterinaria-demo.castrod2207.workers.dev', live: true, iframe: true, bg: '#15291f', ink: '#f3f4ee', btn: '#d6f07a', btnInk: '#13251b' },
   { id: 'estetica', name: 'Lumen Clínica Estética', url: 'https://estetica-demo.castrod2207.workers.dev', bilingual: true, live: true, iframe: true, bg: '#133621', ink: '#f6f3e6', btn: '#f4d96c', btnInk: '#133621' },
