@@ -5,7 +5,7 @@ import logo from './logo-paths.json';
 import wordmark from './wordmark.json';
 import { es } from '../i18n/es';
 import { en } from '../i18n/en';
-import { COP_PRICES, DEMOS, SECTOR_THEME, USD_PRICES, demoSrcset, wa, type PackageId, type SectorId } from '../i18n/shared';
+import { COP_PRICES, DEMOS, SECTOR_THEME, USD_PRICES, demoSrcset, demoUrl, wa, type PackageId, type SectorId } from '../i18n/shared';
 import { EVENTS_ENDPOINT_ENABLED, SITE_URL, WHATSAPP_NUMBER } from '../../site.config.mjs';
 import { existsSync } from 'node:fs';
 
@@ -38,7 +38,7 @@ const pageData = {
   prices,
   calc: { months: t.calc.months('{n}'), oneMonth: t.calc.oneMonth, lessThanOne: t.calc.lessThanOne, empty: t.calc.empty, locale: t.calc.numberFormat },
   errors: t.close.errors,
-  demos: Object.fromEntries(DEMOS.map((d) => [d.id, { name: d.name, url: d.url, live: d.live, iframe: d.iframe }])),
+  demos: Object.fromEntries(DEMOS.map((d) => [d.id, { name: d.name, url: demoUrl(d, lang), live: d.live, iframe: d.iframe }])),
 };
 
 const jsonLd = {
@@ -211,7 +211,7 @@ const hasPhoto = existsSync('public/assets/foto-david.webp');
             <li class="demo-panel" style={`--p-bg:${d.bg};--p-ink:${d.ink};--p-btn:${d.btn};--p-btn-ink:${d.btnInk};--pi:${i}`}>
               <a
                 class="demo-link"
-                href={d.live ? d.url : wa(WHATSAPP_NUMBER, `${baseMessage} ${t.wa.lumenSuffix}`)}
+                href={d.live ? demoUrl(d, lang) : wa(WHATSAPP_NUMBER, `${baseMessage} ${t.wa.lumenSuffix}`)}
                 target="_blank"
                 rel="noopener"
                 data-demo-open={d.live ? d.id : undefined}

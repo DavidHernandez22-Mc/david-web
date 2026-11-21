@@ -12,6 +12,8 @@ export interface DemoMeta {
   live: boolean;
   /** false = la demo no permite iframe; se abre directo en pestaña nueva. */
   iframe: boolean;
+  /** true = la demo tiene versión en inglés en <url>/en/; la web en inglés abre esa. */
+  bilingual?: boolean;
   bg: string;
   ink: string;
   btn: string;
@@ -20,12 +22,15 @@ export interface DemoMeta {
 
 // Para volver a encender Lumen: publícala en esa URL y cambia live a true.
 export const DEMOS: DemoMeta[] = [
-  { id: 'odontologia', name: 'Clínica Dental Chicó', url: 'https://odontologia.davidhcwebs.com', live: true, iframe: true, bg: '#1c2b27', ink: '#f1f1ec', btn: '#ebebe7', btnInk: '#14211d' },
+  { id: 'odontologia', name: 'Clínica Dental Chicó', url: 'https://odontologia.davidhcwebs.com', bilingual: true, live: true, iframe: true, bg: '#1c2b27', ink: '#f1f1ec', btn: '#ebebe7', btnInk: '#14211d' },
   { id: 'restaurante', name: 'La Plancha 70', url: 'https://restauranteejemplodc.netlify.app', live: true, iframe: true, bg: '#c81e12', ink: '#ffffff', btn: '#f7b91c', btnInk: '#1b110c' },
   { id: 'inmobiliaria', name: 'Altamira Propiedades', url: 'https://inmobiliaria-demo.castrod2207.workers.dev', live: true, iframe: true, bg: '#dedad3', ink: '#0f0f0d', btn: '#235a4c', btnInk: '#ffffff' },
   { id: 'veterinaria', name: 'Arrayán Clínica Veterinaria', url: 'https://veterinaria-demo.castrod2207.workers.dev', live: true, iframe: true, bg: '#15291f', ink: '#f3f4ee', btn: '#d6f07a', btnInk: '#13251b' },
-  { id: 'estetica', name: 'Lumen Clínica Estética', url: 'https://estetica-demo.castrod2207.workers.dev', live: true, iframe: true, bg: '#133621', ink: '#f6f3e6', btn: '#f4d96c', btnInk: '#133621' },
+  { id: 'estetica', name: 'Lumen Clínica Estética', url: 'https://estetica-demo.castrod2207.workers.dev', bilingual: true, live: true, iframe: true, bg: '#133621', ink: '#f6f3e6', btn: '#f4d96c', btnInk: '#133621' },
 ];
+
+/** URL de la demo en el idioma de la página: las bilingües abren /en/ desde la web en inglés. */
+export const demoUrl = (d: DemoMeta, lang: 'es' | 'en') => (lang === 'en' && d.bilingual ? `${d.url}/en/` : d.url);
 
 export const SECTOR_THEME: Record<SectorId, { bg: string; ink: string; btn: string; btnInk: string }> = {
   general: { bg: '#ff7a1f', ink: '#050f16', btn: '#050f16', btnInk: '#ffffff' },

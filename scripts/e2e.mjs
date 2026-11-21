@@ -85,6 +85,13 @@ for (const [path, L] of [['/', { base: 'Hola David, vi tu página y quiero una w
     const tab = await page.$eval('[data-viewer-tab]', (a) => a.href);
     const demoUrl = await page.$eval(`[data-demo-open="${id}"]`, (a) => a.href);
     ok(tab === demoUrl && tab.startsWith('https://'), `botón pestaña nueva con URL de ${id} (${tab})`);
+    // Las demos bilingües abren su versión en el idioma de la página.
+    if (['odontologia', 'estetica'].includes(id)) {
+      const en = path === '/en/';
+      const src = await page.$eval('[data-viewer-frame]', (f) => f.src);
+      const fl = await page.frames().find((x) => x !== page.mainFrame() && x.url().startsWith('https'))?.evaluate(() => document.documentElement.lang).catch(() => '');
+      ok(src.endsWith('/en/') === en && (fl || '').startsWith(en ? 'en' : 'es'), `${id} se abre en ${en ? 'inglés' : 'español'} (${src}, lang=${fl})`);
+    }
     const want = await page.$eval('[data-viewer-want]', (a) => a.href);
     ok(text(want).startsWith(L.base), `"Quiero una así": "${text(want)}"`);
     await page.tap('[data-viewer-close]');
