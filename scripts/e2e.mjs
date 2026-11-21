@@ -21,10 +21,10 @@ for (const [path, L] of [['/', { base: 'Hola David, vi tu página y quiero una w
 
   // Todos los enlaces de WhatsApp
   const links = await page.$$eval('a[href*="wa.me"]', (a) => a.map((x) => x.href));
-  ok(links.length >= 8 && links.every((u) => u.startsWith('https://wa.me/573008564773?text=')), `${links.length} enlaces van a 573008564773`);
+  ok(links.length >= 8 && links.every((u) => u.startsWith('https://wa.me/573244281553?text=')), `${links.length} enlaces van a 573244281553`);
   ok(links.every((u) => text(u).startsWith(L.base)), 'todos con el mensaje base');
   const visible = await page.evaluate(() => document.body.innerText);
-  ok(!/3008564773/.test(visible), 'teléfono no visible');
+  ok(!/3244281553/.test(visible), 'teléfono no visible');
 
   // Selector de sector
   const before = await page.textContent('h1');
@@ -149,7 +149,7 @@ for (const [path, L] of [['/', { base: 'Hola David, vi tu página y quiero una w
   await page.check('#f-consent');
   await page.click('.btn-submit');
   popup = await page.evaluate(() => window.__open);
-  ok(popup && popup.startsWith('https://wa.me/573008564773'), 'abre WhatsApp');
+  ok(popup && popup.startsWith('https://wa.me/573244281553'), 'abre WhatsApp');
   console.log('     mensaje:', popup && text(popup));
   ok(popup && ['Ana', 'Clínica Sol', 'mostrar precios'].every((x) => text(popup).includes(x)), 'mensaje con todos los datos');
   ok((await page.textContent('[data-form-preview]')).includes('Ana'), 'vista previa en vivo');

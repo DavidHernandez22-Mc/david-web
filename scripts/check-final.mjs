@@ -30,5 +30,5 @@ await p.screenshot({ path: 'reports/404.jpg', type: 'jpeg', quality: 70 });
 await b.close();
 const walk = (d) => readdirSync(d).flatMap((f) => { const x = join(d, f); return statSync(x).isDirectory() ? walk(x) : [x]; });
 const html = walk('dist').filter((f) => f.endsWith('.html')).map((f) => [f, readFileSync(f, 'utf8').replace(/<script[\s\S]*?<\/script>/g, '').replace(/<[^>]+>/g, ' ')]);
-const banned = /soluciones digitales|innovador|transformaci[oó]n digital|siguiente nivel|universidad|university|next\.?js|\breact\b|\bastro\b|framework|nosotros|nuestro|573008564773|testimonios? de/i;
+const banned = /soluciones digitales|innovador|transformaci[oó]n digital|siguiente nivel|universidad|university|next\.?js|\breact\b|\bastro\b|framework|nosotros|nuestro|573244281553|testimonios? de/i;
 for (const [f, t] of html) { const m = t.match(banned); console.log(f, m ? `PROHIBIDO: ${m[0]}` : 'copy limpio'); }

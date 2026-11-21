@@ -6,7 +6,7 @@ export const SITE_URL = 'https://davidhcwebs.com';
 export const CONTACT_EMAIL = 'castrod2207@gmail.com';
 
 // Sin "+" ni espacios. Solo se usa dentro de enlaces de WhatsApp, nunca como texto visible.
-export const WHATSAPP_NUMBER = '573008564773';
+export const WHATSAPP_NUMBER = '573244281553';
 
 // Token de Cloudflare Web Analytics (visitas, sin cookies). Vacío = no se carga ningún script.
 // Se obtiene en el panel: Analytics & Logs → Web Analytics → Add a site (ver README).
