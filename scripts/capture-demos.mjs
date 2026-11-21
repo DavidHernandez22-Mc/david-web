@@ -8,7 +8,7 @@ const demos = {
   restaurante: 'https://restaurante.davidhcwebs.com',
   inmobiliaria: 'https://inmobiliaria.davidhcwebs.com',
   veterinaria: 'https://veterinaria.davidhcwebs.com',
-  estetica: process.env.LUMEN_URL || 'https://estetica-demo.castrod2207.workers.dev',
+  estetica: process.env.LUMEN_URL || 'https://estetica.davidhcwebs.com',
 };
 const views = {
   mobile: { viewport: { width: 390, height: 844 }, deviceScaleFactor: 2, isMobile: true, hasTouch: true },
