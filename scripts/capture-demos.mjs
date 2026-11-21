@@ -6,7 +6,7 @@ import { chromium } from 'playwright';
 const demos = {
   odontologia: 'https://odontologia.davidhcwebs.com',
   restaurante: 'https://restaurante.davidhcwebs.com',
-  inmobiliaria: 'https://inmobiliaria-demo.castrod2207.workers.dev',
+  inmobiliaria: 'https://inmobiliaria.davidhcwebs.com',
   veterinaria: 'https://veterinaria-demo.castrod2207.workers.dev',
   estetica: process.env.LUMEN_URL || 'https://estetica-demo.castrod2207.workers.dev',
 };
