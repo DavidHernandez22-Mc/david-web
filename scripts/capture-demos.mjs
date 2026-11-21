@@ -4,7 +4,7 @@
 import { chromium } from 'playwright';
 
 const demos = {
-  odontologia: 'https://odontologiademo1.netlify.app',
+  odontologia: 'https://odontologia.davidhcwebs.com',
   restaurante: 'https://restauranteejemplodc.netlify.app',
   inmobiliaria: 'https://inmobiliaria-demo.castrod2207.workers.dev',
   veterinaria: 'https://veterinaria-demo.castrod2207.workers.dev',
