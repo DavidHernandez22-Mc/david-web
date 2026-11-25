@@ -274,3 +274,18 @@ Todas las microinteracciones de hover solo existen con `(hover: hover) and (poin
 - **gsap-core, timeline, scrolltrigger y performance:** `matchMedia`, `batch`, `quickTo`, `scrub` suavizado, fijar solo lo necesario y limpiar al cambiar de tamaño.
 - **lenis:** un solo motor de animación, sincronizado con ScrollTrigger, y `lagSmoothing(0)`.
 - **Se mantienen de la v1:** tokens de color con contraste medido, esquinas rectas, la marca DavidHC Webs, la estructura y el orden de secciones, y el largo ≤ 10.000 px en celular.
+
+---
+
+## Ajustes aprobados (v2.1)
+
+1. **Precio del hero:** "desde $1.600.000" = paquete Esencial, el más barato (verificado). En la Fase 4 sale de `COP_PRICES`/`USD_PRICES`, no queda escrito a mano.
+2. **Demos fijadas (computador):**
+   - Cada sector pasa con **poco scroll**: ≈ 45vh por sector, 5 × 45vh en total, en lugar de una pantalla por sector.
+   - Lleva un **indicador de progreso "1/5"** al lado de los nombres de sector y un enlace **"Saltar las demos ↓"** visible arriba del escenario, que lleva al ancla de la sección siguiente.
+   - Este pedido explícito tuyo prima sobre la regla de "sin numeración" de design-taste-frontend.
+3. **Carrusel en celular:**
+   - Las tarjetas ocupan el 84 % del ancho, así que **la siguiente siempre se asoma**.
+   - **Puntos de posición** debajo, que se actualizan con `scroll-snap` y `IntersectionObserver`. Los puntos son botones de 24 px con `aria-label` "Demo 2 de 5".
+4. **Visor que se abre desde la tarjeta:** sigue cargando el **subdominio real** de cada demo en el iframe (odontologia., restaurante., inmobiliaria., veterinaria., estetica.davidhcwebs.com). Las pruebas e2e lo comprueban con las 5, en español y en inglés.
+5. **Botón magnético e inclinación 3D:** **solo** con `(hover: hover) and (pointer: fine)`. En pantallas táctiles no se registran esos listeners.
