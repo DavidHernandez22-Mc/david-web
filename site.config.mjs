@@ -14,3 +14,10 @@ export const CF_ANALYTICS_TOKEN = '';
 
 // Enciende el envío de clics y visitas al Worker en /api/event (worker/index.js, ver README).
 export const EVENTS_ENDPOINT_ENABLED = true;
+
+// Nombre de la marca: logotipo, títulos, Open Graph, JSON-LD y pie.
+export const BRAND_NAME = 'DavidHC Webs';
+
+// Oferta de lanzamiento (español e inglés salen de aquí). Para cambiar los cupos o apagarla,
+// edita solo esta línea: active: false la quita de toda la web; spotsLeft: 0 también.
+export const OFFER = { active: true, spotsLeft: 3, spotsTotal: 3, discount: 0.3 };

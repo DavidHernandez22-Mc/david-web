@@ -5,8 +5,8 @@ import logo from './logo-paths.json';
 import wordmark from './wordmark.json';
 import { es } from '../i18n/es';
 import { en } from '../i18n/en';
-import { COP_PRICES, DEMOS, SECTOR_THEME, USD_PRICES, demoSrcset, demoUrl, wa, type PackageId, type SectorId } from '../i18n/shared';
-import { EVENTS_ENDPOINT_ENABLED, SITE_URL, WHATSAPP_NUMBER } from '../../site.config.mjs';
+import { COP_PRICES, DEMOS, SECTOR_THEME, USD_PRICES, demoSrcset, demoUrl, wa, type DemoId, type PackageId, type SectorId } from '../i18n/shared';
+import { BRAND_NAME, EVENTS_ENDPOINT_ENABLED, OFFER, SITE_URL, WHATSAPP_NUMBER } from '../../site.config.mjs';
 import { existsSync } from 'node:fs';
 
 interface Props { lang: 'es' | 'en' }
@@ -22,10 +22,19 @@ const packageIds: PackageId[] = ['esencial', 'profesional', 'premium'];
 const prices = isEs ? COP_PRICES : USD_PRICES;
 const fmt = new Intl.NumberFormat(t.calc.numberFormat, { maximumFractionDigits: 0 });
 const money = (n: number) => `$${fmt.format(n)}`;
-const heroPhones = ['restaurante', 'odontologia', 'veterinaria', 'inmobiliaria', 'estetica'] as const;
-const sectorToDemo: Partial<Record<SectorId, typeof heroPhones[number]>> = { odontologia: 'odontologia', estetica: 'estetica', veterinaria: 'veterinaria', inmobiliaria: 'inmobiliaria', restaurante: 'restaurante' };
-const phoneSizes = '(min-width: 900px) 340px, 44vw';
+const cheapest = Math.min(...Object.values(prices));
+
+// La oferta sale de una sola línea de site.config.mjs (OFFER).
+const offerOn = OFFER.active && OFFER.spotsLeft > 0;
+const pct = `${Math.round(OFFER.discount * 100)}%`;
+const offerPrice = (p: PackageId) => (isEs ? Math.round((COP_PRICES[p] * (1 - OFFER.discount)) / 10000) * 10000 : Math.round(USD_PRICES[p] * (1 - OFFER.discount)));
+
+// La escena del hero: la demo por defecto y las que rota cuando no hay sector elegido.
+const sceneDemos: DemoId[] = ['odontologia', 'restaurante', 'veterinaria', 'inmobiliaria', 'estetica'];
+const sectorToDemo: Partial<Record<SectorId, DemoId>> = { odontologia: 'odontologia', estetica: 'estetica', veterinaria: 'veterinaria', inmobiliaria: 'inmobiliaria', restaurante: 'restaurante' };
 const demoName = (id: string) => DEMOS.find((d) => d.id === id)?.name ?? '';
+const blank = 'data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw==';
+const titleWords = t.hero.titleLead.split(' ');
 
 const pageData = {
   lang,
@@ -33,27 +42,35 @@ const pageData = {
   events: EVENTS_ENDPOINT_ENABLED,
   themes: SECTOR_THEME,
   sectorToDemo,
-  sectors: Object.fromEntries(Object.entries(t.sectors).map(([k, v]) => [k, { title: v.title, sub: v.sub, features: v.features, noun: v.noun, chip: v.chip }])),
-  wa: { base: t.wa.base, fallbackNoun: t.wa.fallbackNoun, packageSuffix: t.wa.packageSuffix('{p}'), demoSuffix: t.wa.demoSuffix('{d}'), calcSuffix: t.wa.calcSuffix, offer: t.wa.offer, formName: t.wa.formName, formBusiness: t.wa.formBusiness, formNeed: t.wa.formNeed, lumenSuffix: t.wa.lumenSuffix },
+  sectors: Object.fromEntries(Object.entries(t.sectors).map(([k, v]) => [k, { sub: v.sub, noun: v.noun, chip: v.chip }])),
+  wa: { base: t.wa.base, fallbackNoun: t.wa.fallbackNoun, demoSuffix: t.wa.demoSuffix('{d}'), calcSuffix: t.wa.calcSuffix, formName: t.wa.formName, formBusiness: t.wa.formBusiness, formNeed: t.wa.formNeed },
   prices,
   calc: { months: t.calc.months('{n}'), oneMonth: t.calc.oneMonth, lessThanOne: t.calc.lessThanOne, empty: t.calc.empty, locale: t.calc.numberFormat },
   errors: t.close.errors,
-  demos: Object.fromEntries(DEMOS.map((d) => [d.id, { name: d.name, url: demoUrl(d, lang), live: d.live, iframe: d.iframe }])),
+  demos: Object.fromEntries(DEMOS.map((d) => [d.id, { name: d.name, url: demoUrl(d, lang), live: d.live, iframe: d.iframe, bg: d.bg, ink: d.ink }])),
 };
 
+const home = new URL(t.home, SITE_URL).href;
 const jsonLd = {
   '@context': 'https://schema.org',
   '@graph': [
     {
       '@type': 'ProfessionalService',
       '@id': `${SITE_URL}/#service`,
-      name: isEs ? 'David Hernández · Webs para negocios' : 'David Hernández · Websites for businesses',
-      url: new URL(t.home, SITE_URL).href,
+      name: BRAND_NAME,
+      url: home,
       image: new URL(isEs ? '/og-es.png' : '/og-en.png', SITE_URL).href,
+      logo: new URL('/icon-512.png', SITE_URL).href,
       description: t.jsonLd.description,
-      areaServed: t.jsonLd.area,
+      telephone: `+${WHATSAPP_NUMBER}`,
+      address: { '@type': 'PostalAddress', addressLocality: 'Bogotá', addressRegion: 'Bogotá D.C.', addressCountry: 'CO' },
+      areaServed: [
+        { '@type': 'City', name: 'Bogotá' },
+        { '@type': 'Country', name: 'Colombia' },
+      ],
+      openingHoursSpecification: [{ '@type': 'OpeningHoursSpecification', dayOfWeek: ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'] }],
       inLanguage: lang,
-      priceRange: isEs ? '$1.600.000 - $4.900.000 COP' : '$510 - $1,550 USD',
+      priceRange: isEs ? `${money(COP_PRICES.esencial)} - ${money(COP_PRICES.premium)} COP` : `${money(USD_PRICES.esencial)} - ${money(USD_PRICES.premium)} USD`,
       founder: { '@id': `${SITE_URL}/#david` },
     },
     {
@@ -61,7 +78,8 @@ const jsonLd = {
       '@id': `${SITE_URL}/#david`,
       name: 'David Hernández Castro',
       jobTitle: t.jsonLd.jobTitle,
-      url: new URL(t.home, SITE_URL).href,
+      worksFor: { '@id': `${SITE_URL}/#service` },
+      url: home,
     },
     {
       '@type': 'FAQPage',
@@ -70,8 +88,9 @@ const jsonLd = {
   ],
 };
 const pkg = t.pricing.packages;
-// Tu foto: guarda public/assets/foto-david.webp (4:5) y aparece sola en el próximo build. Sin archivo, se ve el monograma.
+// Tu foto: guarda public/assets/foto-david.webp (576×720, 4:5) y aparece sola en el próximo build. Sin archivo, se ve el monograma.
 const hasPhoto = existsSync('public/assets/foto-david.webp');
+const Logo = { w: logo.w, box: logo.box };
 ---
 <Base
   lang={lang}
@@ -82,104 +101,135 @@ const hasPhoto = existsSync('public/assets/foto-david.webp');
   path={t.home}
   altPath={t.otherHome}
   jsonLd={jsonLd}
+  preloadImage={{ srcset: demoSrcset('odontologia', 'desktop'), sizes: '(min-width: 1024px) 44vw, 1px', media: '(min-width: 1024px)', priority: 'high' }}
 >
   <Icons />
   <a class="skip" href="#main">{t.skip}</a>
-  <p class="strip">{t.strip}</p>
 
-    <header class="bar">
-      <a class="logo" href={t.home} aria-label={isEs ? 'David Hernández, webs para negocios. Inicio' : 'David Hernández, websites for businesses. Home'}>
-        <svg viewBox={`0 0 ${logo.w} 68`} aria-hidden="true"><path fill="currentColor" d={logo.bubble} /><path class="logo-cut" d={logo.d} /><path fill="currentColor" d={logo.name} /><path fill="currentColor" d={logo.tag[lang]} /></svg>
-      </a>
-      <nav class="bar-nav" aria-label={isEs ? 'Principal' : 'Main'}>
-        <a class="nav-sec" href="#demos">{t.nav.demos}</a>
-        <a class="nav-sec" href="#paquetes">{t.nav.packages}</a>
-        <a class="nav-sec" href="#preguntas">{t.nav.faq}</a>
-        <a class="nav-lang" href={t.otherHome} hreflang={isEs ? 'en' : 'es'} lang={isEs ? 'en' : 'es'} aria-label={t.otherFull}>{t.otherLabel}</a>
-        <button class="menu-btn" type="button" aria-label={t.nav.menuLabel} aria-haspopup="dialog" data-menu-open>{t.nav.menu}</button>
-      </nav>
-    </header>
+  <header class="bar">
+    <a class="logo" href={t.home} aria-label={t.logoLabel}>
+      <svg viewBox={`0 0 ${Logo.w} ${Logo.box}`} aria-hidden="true"><rect width={Logo.box} height={Logo.box} fill="currentColor" /><path class="logo-cut" d={logo.dh} /><path fill="currentColor" d={logo.name} /><path fill="currentColor" d={logo.webs} /></svg>
+    </a>
+    <nav class="bar-nav" aria-label={t.nav.label}>
+      <a class="nav-sec" href="#demos">{t.nav.demos}</a>
+      <a class="nav-sec" href="#paquetes">{t.nav.packages}</a>
+      <a class="nav-sec" href="#preguntas">{t.nav.faq}</a>
+      <a class="nav-lang" href={t.otherHome} hreflang={isEs ? 'en' : 'es'} lang={isEs ? 'en' : 'es'} aria-label={t.otherFull}>{t.otherLabel}</a>
+      <a class="btn btn-bar nav-sec" href={waGeneral} target="_blank" rel="noopener" data-wa="bar" data-track="whatsapp_click" data-label="barra"><svg class="ico" aria-hidden="true"><use href="#i-wa" /></svg>{t.nav.cta}</a>
+      <button class="menu-btn" type="button" aria-label={t.nav.menuLabel} aria-haspopup="dialog" data-menu-open>{t.nav.menu}</button>
+    </nav>
+  </header>
 
-    <dialog class="menu" data-menu aria-label={t.nav.menu}>
-      <div class="menu-top">
-        <svg class="menu-logo" viewBox={`0 0 ${logo.w} 68`} aria-hidden="true"><path fill="currentColor" d={logo.bubble} /><path class="menu-logo-cut" d={logo.d} /><path fill="currentColor" d={logo.name} /><path fill="currentColor" d={logo.tag[lang]} /></svg>
-        <button class="menu-close" type="button" aria-label={t.nav.close} data-menu-close autofocus><svg aria-hidden="true"><use href="#i-close" /></svg></button>
-      </div>
-      <nav aria-label={t.nav.menu}>
-        <ul class="menu-links">
-          <li><a href="#demos" data-menu-link>{t.nav.demos}</a></li>
-          <li><a href="#paquetes" data-menu-link>{t.nav.packages}</a></li>
-          <li><a href="#preguntas" data-menu-link>{t.nav.faq}</a></li>
-          <li><a href="#escribeme" data-menu-link>{t.nav.cta}</a></li>
-        </ul>
-      </nav>
-      <p class="menu-strip">{t.strip}</p>
-    </dialog>
+  <dialog class="menu" data-menu aria-label={t.nav.menu} data-lenis-prevent>
+    <div class="menu-top">
+      <svg class="menu-logo" viewBox={`0 0 ${Logo.w} ${Logo.box}`} aria-hidden="true"><rect width={Logo.box} height={Logo.box} fill="currentColor" /><path class="menu-logo-cut" d={logo.dh} /><path fill="currentColor" d={logo.name} /><path fill="currentColor" d={logo.webs} /></svg>
+      <button class="menu-close" type="button" aria-label={t.nav.close} data-menu-close autofocus><svg aria-hidden="true"><use href="#i-close" /></svg></button>
+    </div>
+    <nav aria-label={t.nav.menu}>
+      <ul class="menu-links">
+        <li><a href="#demos" data-menu-link>{t.nav.demos}</a></li>
+        <li><a href="#paquetes" data-menu-link>{t.nav.packages}</a></li>
+        <li><a href="#preguntas" data-menu-link>{t.nav.faq}</a></li>
+        <li><a href="#escribeme" data-menu-link>{t.nav.cta}</a></li>
+      </ul>
+    </nav>
+  </dialog>
 
-    <main id="main">
-      <section class="hero" id="hero" aria-labelledby="hero-title">
+  <main id="main">
+    <section class="hero" id="hero" aria-labelledby="hero-title">
+      <div class="wrap hero-in">
         <div class="hero-copy">
-          <div class="hero-swap" aria-live="polite">
-            <h1 id="hero-title" data-h-title>{general.title}</h1>
-            <p class="hero-sub" data-h-sub>{general.sub}</p>
-          </div>
-          <div class="hero-actions">
-            <a class="btn btn-hero" href={waGeneral} target="_blank" rel="noopener" data-wa="hero" data-track="whatsapp_click" data-label="hero">
-              <svg class="ico" aria-hidden="true"><use href="#i-wa" /></svg>{t.hero.primary}
-            </a>
-            <p class="hero-free">{t.hero.free}</p>
-            <a class="text-link" href="#demos" data-hero-demos data-default={t.hero.secondary} data-this={t.hero.seeThis}>{t.hero.secondary}</a>
-            <a class="text-link" href="#paquetes">{t.hero.priceLink}</a>
-          </div>
-          <fieldset class="picker">
-            <legend>{t.hero.question}</legend>
-            <p class="picker-sub">{t.hero.pickerSub}</p>
-            <div class="chips">
-              {sectorIds.map((id) => (
-                <label class="chip"><input type="radio" name="sector" value={id} /><span>{t.sectors[id].chip}</span></label>
+          <h1 id="hero-title" class="hero-title">
+            {titleWords.map((w, i) => <><span class="hw" style={`--i:${i}`}><span>{w}</span></span>{' '}</>)}
+            <span class="hw hw-frame" style={`--i:${titleWords.length}`} aria-hidden="true"><span class="h-frame">
+              {sceneDemos.map((id, i) => (
+                <img class:list={['shot', { 'is-on': i === 0 }]} data-group="frame" data-demo={id} src={i === 0 ? `/demos/${id}-mobile-260.webp` : blank} data-src={i === 0 ? undefined : `/demos/${id}-mobile-260.webp`} width="260" height="563" alt="" decoding="async" />
               ))}
+            </span></span>{' '}
+            <span class="hw" style={`--i:${titleWords.length + 1}`}><span class="h-word" data-h-word>{general.noun}.</span></span>
+          </h1>
+          <div class="hero-foot">
+            <p class="hero-sub" data-h-sub aria-live="polite">{general.sub}</p>
+            <div class="hero-actions">
+              <a class="btn btn-hero" href={waGeneral} target="_blank" rel="noopener" data-wa="hero" data-track="whatsapp_click" data-label="hero" data-magnetic>
+                <svg class="ico" aria-hidden="true"><use href="#i-wa" /></svg>{t.hero.primary}
+              </a>
+              <a class="text-link link-arrow" href="#demos" data-hero-demos data-default={t.hero.secondary} data-this={t.hero.seeThis}><span>{t.hero.secondary}</span><svg class="ico" aria-hidden="true"><use href="#i-arrow" /></svg></a>
             </div>
-          </fieldset>
+          </div>
         </div>
-        <div class="hero-stage">
-          <div class="hero-side">
-            <p class="bubble-label">{t.hero.bubbleLabel}</p>
-            <p class="bubble bubble-out" data-bubble>{baseMessage}</p>
-            <h2 class="hero-list-title">{t.hero.listLabel}</h2>
-            <ul class="hero-list" data-h-list>
-              {general.features.map((f) => <li><svg class="ico-check" aria-hidden="true"><use href="#i-check" /></svg><span>{f}</span></li>)}
-            </ul>
-          </div>
-          <a class="phone hero-phone" href="#demos" data-hero-phone aria-label={t.hero.openPhone}>
-            <div class="phone-screen">
-              {heroPhones.map((id, i) => (
-                <img
-                  class:list={['hero-shot', { 'is-on': i === 0 }]}
-                  data-demo={id}
-                  srcset={i === 0 ? demoSrcset(id, 'mobile') : undefined}
-                  data-srcset={i === 0 ? undefined : demoSrcset(id, 'mobile')}
-                  src={i === 0 ? `/demos/${id}-mobile-390.webp` : 'data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw=='}
-                  sizes={phoneSizes}
-                  width="390"
-                  height="844"
-                  alt={i === 0 ? t.hero.phoneAlt(demoName(id)) : ''}
-                  data-alt={t.hero.phoneAlt(demoName(id))}
-                  decoding="async"
-                />
-              ))}
-            </div>
+
+        <div class="hero-scene">
+          <a class="scene-link" href="#demos" data-hero-phone aria-label={t.hero.openScene}>
+            <span class="device laptop" data-depth="1">
+              <span class="laptop-screen">
+                {sceneDemos.map((id, i) => (
+                  <img
+                    class:list={['shot', { 'is-on': i === 0 }]}
+                    data-group="laptop"
+                    data-demo={id}
+                    srcset={i === 0 ? demoSrcset(id, 'desktop') : undefined}
+                    data-srcset={i === 0 ? undefined : demoSrcset(id, 'desktop')}
+                    src={i === 0 ? `/demos/${id}-desktop-960.webp` : blank}
+                    sizes="(min-width: 1024px) 44vw, 90vw"
+                    width="1440"
+                    height="900"
+                    alt={i === 0 ? t.hero.desktopAlt(demoName(id)) : ''}
+                    data-alt={t.hero.desktopAlt(demoName(id))}
+                    decoding="async"
+                    fetchpriority={i === 0 ? 'high' : undefined}
+                  />
+                ))}
+              </span>
+            </span>
+            <span class="device phone hero-phone" data-depth="2">
+              <span class="phone-screen">
+                {sceneDemos.map((id, i) => (
+                  <img
+                    class:list={['shot', { 'is-on': i === 0 }]}
+                    data-group="phone"
+                    data-demo={id}
+                    srcset={i === 0 ? demoSrcset(id, 'mobile') : undefined}
+                    data-srcset={i === 0 ? undefined : demoSrcset(id, 'mobile')}
+                    src={i === 0 ? `/demos/${id}-mobile-390.webp` : blank}
+                    sizes="(min-width: 1024px) 220px, 42vw"
+                    width="390"
+                    height="844"
+                    alt={i === 0 ? t.hero.phoneAlt(demoName(id)) : ''}
+                    data-alt={t.hero.phoneAlt(demoName(id))}
+                    decoding="async"
+                  />
+                ))}
+              </span>
+            </span>
           </a>
+          <p class="frag frag-bubble" data-depth="3" aria-hidden="true"><span data-bubble>{baseMessage}</span></p>
+          <p class="frag frag-price" data-depth="3"><span>{t.hero.priceTag(money(cheapest))}</span></p>
+          <p class="frag frag-stamp" data-depth="3"><span>{t.hero.stamp}</span></p>
         </div>
-      </section>
+      </div>
+
+      <div class="wrap picker-band">
+        <fieldset class="picker">
+          <legend>{t.hero.question}</legend>
+          <p class="picker-sub">{t.hero.pickerSub}</p>
+          <div class="chips">
+            {sectorIds.map((id) => (
+              <label class="chip"><input type="radio" name="sector" value={id} /><span>{t.sectors[id].chip}</span></label>
+            ))}
+          </div>
+        </fieldset>
+      </div>
+    </section>
 
     <section class="problem" aria-labelledby="problem-title">
-      <div class="wrap">
-        <h2 id="problem-title" class="h-big" data-reveal>{t.problem.title}</h2>
+      <div class="wrap problem-in">
+        <h2 id="problem-title" class="h2" data-split>{t.problem.title}</h2>
         <div class="problem-grid">
           <article class="pb pb-chat" data-reveal>
             <div class="pb-text"><h3>{t.problem.chat.title}</h3><p>{t.problem.chat.text}</p></div>
             <div class="pb-chatlog" aria-hidden="true">
-              {t.problem.chat.bubbles.map((b, i) => <span class="bubble bubble-in" style={`--i:${i}`}>{b}</span>)}
+              {t.problem.chat.bubbles.map((b, i) => <span class:list={['bubble', 'bubble-in', { 'only-wide-b': i > 2 }]} style={`--i:${i}`}>{b}</span>)}
             </div>
           </article>
           <article class="pb pb-insta" data-reveal>
@@ -201,61 +251,96 @@ const hasPhoto = existsSync('public/assets/foto-david.webp');
 
     <section id="demos" class="demos" aria-labelledby="demos-title">
       <div class="wrap demos-head">
-        <h2 id="demos-title" class="h-big" data-reveal>{t.demos.title}</h2>
-        <p class="lead" data-reveal>{t.demos.intro}</p>
+        <h2 id="demos-title" class="h2" data-split>{t.demos.title}</h2>
+        <div class="demos-intro">
+          <p class="lead" data-reveal>{t.demos.intro}</p>
+          <a class="text-link skip-demos" href="#despues-demos"><span>{t.demos.skip}</span><svg class="ico ico-down" aria-hidden="true"><use href="#i-arrow" /></svg></a>
+        </div>
       </div>
-      <ul class="demo-stack">
-        {DEMOS.map((d, i) => {
-          const item = t.demos.items[d.id];
-          return (
-            <li class="demo-panel" style={`--p-bg:${d.bg};--p-ink:${d.ink};--p-btn:${d.btn};--p-btn-ink:${d.btnInk};--pi:${i}`}>
-              <a
-                class="demo-link"
-                href={d.live ? demoUrl(d, lang) : wa(WHATSAPP_NUMBER, `${baseMessage} ${t.wa.lumenSuffix}`)}
-                target="_blank"
-                rel="noopener"
-                data-demo-open={d.live ? d.id : undefined}
-                data-track={d.live ? 'demo_open' : 'whatsapp_click'}
-                data-label={d.live ? d.id : `demo-offline-${d.id}`}
-              >
-                <div class="demo-text">
-                  <h3>{item.sector}{item.tag && <span class="demo-tag"> · {item.tag}</span>}</h3>
-                  <p class="demo-hook">{item.hook}</p>
-                  <p class="demo-name">{d.name}</p>
-                  <span class="btn demo-btn">{d.live ? t.demos.open : t.demos.unavailable}<svg class="ico" aria-hidden="true"><use href="#i-arrow" /></svg></span>
-                </div>
-                <div class="demo-visual">
-                  <img class="demo-desktop" srcset={demoSrcset(d.id, 'desktop')} src={`/demos/${d.id}-desktop-960.webp`} sizes="(min-width: 900px) 52vw, 1px" width="1440" height="900" alt={t.demos.desktopAlt(d.name)} loading="lazy" decoding="async" />
-                  <div class="phone demo-phone">
-                    <div class="phone-screen">
-                      <img srcset={demoSrcset(d.id, 'mobile')} src={`/demos/${d.id}-mobile-390.webp`} sizes="(min-width: 900px) 240px, 56vw" width="390" height="844" alt={t.demos.phoneAlt(d.name)} loading="lazy" decoding="async" />
-                    </div>
-                  </div>
-                </div>
-              </a>
-            </li>
-          );
-        })}
-      </ul>
-      <p class="wrap fine">{t.demos.fine}</p>
+      <div class="demo-stage" data-demo-stage style={`--n:${DEMOS.length}`}>
+        <div class="demo-sticky">
+          <div class="wrap demo-meta" aria-hidden="true">
+            <p class="demo-count" data-demo-count>{t.demos.progress(1, DEMOS.length)}</p>
+            <ol class="demo-index">
+              {DEMOS.map((d, i) => <li class:list={{ 'is-on': i === 0 }} data-demo-name={i}>{t.demos.items[d.id].sector}</li>)}
+            </ol>
+          </div>
+          <p class="sr-only">{t.demos.swipe}</p>
+          <ul class="demo-list" data-demo-list aria-label={t.demos.title}>
+            {DEMOS.map((d, i) => {
+              const item = t.demos.items[d.id];
+              return (
+                <li class:list={['demo-panel', { 'is-active': i === 0 }]} data-demo-panel={i} style={`--p-bg:${d.bg};--p-ink:${d.ink};--p-btn:${d.btn};--p-btn-ink:${d.btnInk}`}>
+                  <a
+                    class="demo-card"
+                    href={d.live ? demoUrl(d, lang) : wa(WHATSAPP_NUMBER, `${baseMessage} ${t.wa.lumenSuffix}`)}
+                    target="_blank"
+                    rel="noopener"
+                    data-demo-open={d.live ? d.id : undefined}
+                    data-track={d.live ? 'demo_open' : 'whatsapp_click'}
+                    data-label={d.live ? d.id : `demo-offline-${d.id}`}
+                    data-tilt
+                  >
+                    <span class="demo-text">
+                      <span class="demo-h">{item.sector}{item.tag && <span class="demo-tag"> · {item.tag}</span>}</span>
+                      <span class="demo-hook">{item.hook}</span>
+                      <span class="demo-name">{d.name}</span>
+                      <span class="btn demo-btn">{d.live ? t.demos.open : t.demos.unavailable}<svg class="ico" aria-hidden="true"><use href="#i-arrow" /></svg></span>
+                    </span>
+                    <span class="demo-visual">
+                      <img class="demo-desktop" srcset={demoSrcset(d.id, 'desktop')} src={`/demos/${d.id}-desktop-960.webp`} sizes="(min-width: 1024px) 46vw, 1px" width="1440" height="900" alt={t.demos.desktopAlt(d.name)} loading="lazy" decoding="async" />
+                      <span class="phone demo-phone">
+                        <span class="phone-screen">
+                          <img srcset={demoSrcset(d.id, 'mobile')} src={`/demos/${d.id}-mobile-390.webp`} sizes="(min-width: 1024px) 230px, 52vw" width="390" height="844" alt={t.demos.phoneAlt(d.name)} loading="lazy" decoding="async" />
+                        </span>
+                      </span>
+                    </span>
+                  </a>
+                </li>
+              );
+            })}
+          </ul>
+          <div class="demo-dots" data-demo-dots role="group" aria-label={t.demos.dotsLabel}>
+            {DEMOS.map((_, i) => <button type="button" class:list={['dot', { 'is-on': i === 0 }]} data-demo-dot={i} aria-label={t.demos.progressLabel(i + 1, DEMOS.length)} aria-current={i === 0 ? 'true' : undefined}><i /></button>)}
+          </div>
+        </div>
+        <div class="demo-steps" aria-hidden="true">{DEMOS.map((_, i) => <i data-demo-step={i} />)}</div>
+      </div>
+      <p class="wrap fine" id="despues-demos" tabindex="-1">{t.demos.fine}</p>
+    </section>
+
+    <section class="steps" aria-labelledby="steps-title">
+      <div class="wrap">
+        <h2 id="steps-title" class="h2" data-split>{t.steps.title}</h2>
+        <div class="timeline">
+          <span class="tl-line" aria-hidden="true"><i data-tl-line /></span>
+          <ol class="steps-list">
+            {t.steps.items.map((s) => (
+              <li data-reveal>
+                <span class="step-time">{s.time}</span>
+                <h3>{s.title}</h3>
+                <p>{s.text}</p>
+              </li>
+            ))}
+          </ol>
+        </div>
+      </div>
     </section>
 
     <section class="receive" aria-labelledby="receive-title">
       <div class="wrap">
-        <h2 id="receive-title" class="h-big" data-reveal>{t.receive.title}</h2>
-        <p class="lead" data-reveal>{t.receive.intro}</p>
-        <ul class="receive-grid">
+        <div class="receive-head">
+          <h2 id="receive-title" class="h2" data-split>{t.receive.title}</h2>
+          <p class="lead" data-reveal>{t.receive.intro}</p>
+        </div>
+        <ul class="bento">
           {t.receive.items.map((it) => (
-            <li class:list={['rc', `rc-${it.k}`]} data-reveal>
-              <div class="rc-art" aria-hidden="true">
-                {it.k === 'design' && <span class="swatches">{DEMOS.slice(0, 4).map((d) => <i style={`background:${d.bg === '#dedad3' ? d.btn : d.bg}`} />)}<i style="background:#f7b91c" /></span>}
-                {it.k === 'copy' && <span class="rc-quote">{it.quote}</span>}
-                {it.k === 'phone' && <span class="mini-phone"><i /><i /><i /></span>}
-                {it.k === 'wa' && <svg class="art-wa"><use href="#i-wa" /></svg>}
-                {it.k === 'maps' && <svg class="art-pin"><use href="#i-pin" /></svg>}
-                {it.k === 'seo' && <span class="rc-snippet"><b>{it.snippet}</b><i /><i /></span>}
-                {it.k === 'pub' && <span class="rc-url">{it.url}</span>}
-                {it.k === 'train' && <span class="rc-big">{it.big}</span>}
+            <li class:list={['bt', `bt-${it.k}`]} data-reveal data-tilt>
+              <div class="bt-art" aria-hidden="true">
+                {it.k === 'design' && <span class="swatches">{DEMOS.map((d) => <i style={`background:${d.bg === '#dedad3' ? d.btn : d.bg}`} />)}</span>}
+                {it.k === 'copy' && <span class="bt-quote">{it.quote}</span>}
+                {it.k === 'phone' && <span class="mini-phone"><i /><i /><i /><b><svg><use href="#i-wa" /></svg></b></span>}
+                {it.k === 'own' && <span class="bt-own"><span class="bt-url">{it.url}</span><span class="bt-big">20 min</span></span>}
               </div>
               <h3>{it.title}</h3>
               <p>{it.text}</p>
@@ -265,24 +350,51 @@ const hasPhoto = existsSync('public/assets/foto-david.webp');
       </div>
     </section>
 
-    <section class="steps" aria-labelledby="steps-title">
+    <section class="pricing" id="paquetes" aria-labelledby="pricing-title">
       <div class="wrap">
-        <h2 id="steps-title" class="h-big" data-reveal>{t.steps.title}</h2>
-        <ol class="steps-list">
-          {t.steps.items.map((s) => (
-            <li data-reveal>
-              <span class="step-time">{s.time}</span>
-              <div class="step-body"><h3>{s.title}</h3><p>{s.text}</p></div>
-            </li>
-          ))}
-        </ol>
+        <h2 id="pricing-title" class="h2" data-split>{t.pricing.title}</h2>
+        <p class="lead" data-reveal>{t.pricing.intro}</p>
+        <div class="tabs" role="group" aria-label={t.pricing.tabsLabel} data-tabs>
+          {packageIds.map((p) => <button type="button" class:list={['tab', { 'is-on': p === 'profesional' }]} aria-pressed={p === 'profesional' ? 'true' : 'false'} data-tab={p}>{pkg[p].name}</button>)}
+        </div>
+      </div>
+      <ul class="tickets" data-tickets tabindex="0" aria-label={t.pricing.tabsLabel}>
+        {packageIds.map((p) => (
+          <li class:list={['ticket', { 'ticket-hot': p === 'profesional' }]} data-ticket={p} data-reveal>
+            <div class="ticket-in" data-tilt>
+              <div class="ticket-main">
+                {p === 'profesional' && <p class="ticket-badge">{t.pricing.badge}</p>}
+                <h3>{pkg[p].name}</h3>
+                <p class="ticket-line">{pkg[p].tagline}</p>
+                <p class="ticket-price"><small>{t.pricing.from}</small> <span>{money(prices[p])}</span>{!isEs && <small> USD</small>}</p>
+                {offerOn && <p class="ticket-offer">{t.pricing.offerLine(pct, money(offerPrice(p)))}</p>}
+                <ul class="ticket-items">
+                  {pkg[p].items.map((i) => <li><svg class="ico-check" aria-hidden="true"><use href="#i-check" /></svg><span>{i}</span></li>)}
+                </ul>
+              </div>
+              <a class="btn ticket-btn" href={wa(WHATSAPP_NUMBER, `${baseMessage} ${t.wa.packageSuffix(pkg[p].name)}`)} target="_blank" rel="noopener" data-wa="package" data-wa-suffix={t.wa.packageSuffix(pkg[p].name)} data-track="package_click" data-label={p}>
+                <svg class="ico" aria-hidden="true"><use href="#i-wa" /></svg>{t.pricing.ctaPrefix} {pkg[p].name}
+              </a>
+            </div>
+          </li>
+        ))}
+      </ul>
+      <div class="wrap">
+        <div class="maint" data-reveal>
+          <div class="maint-text"><h3>{t.pricing.maintenance.name}</h3><p>{t.pricing.maintenance.text}</p></div>
+          <p class="maint-price">{t.pricing.maintenance.price}<small>{t.pricing.maintenance.unit}</small></p>
+          <a class="btn btn-accent" href={wa(WHATSAPP_NUMBER, `${baseMessage} ${t.wa.packageSuffix(t.wa.maintenance)}`)} target="_blank" rel="noopener" data-wa="package" data-wa-suffix={t.wa.packageSuffix(t.wa.maintenance)} data-track="package_click" data-label="mantenimiento"><svg class="ico" aria-hidden="true"><use href="#i-wa" /></svg>{t.pricing.maintenance.cta}</a>
+        </div>
+        <ul class="terms">
+          {t.pricing.conditions.map((c) => <li data-reveal><strong>{c.big}</strong><span>{c.text}</span></li>)}
+        </ul>
       </div>
     </section>
 
     <section class="calc" id="calculadora" aria-labelledby="calc-title">
       <div class="wrap calc-grid">
         <div class="calc-head">
-          <h2 id="calc-title" class="h-big" data-reveal>{t.calc.title}</h2>
+          <h2 id="calc-title" class="h2" data-split>{t.calc.title}</h2>
           <p class="lead" data-reveal>{t.calc.intro}</p>
         </div>
         <form class="calc-form" data-calc data-reveal>
@@ -308,8 +420,8 @@ const hasPhoto = existsSync('public/assets/foto-david.webp');
           <h3>{t.calc.resultsTitle}</h3>
           <ul class="calc-results">
             {packageIds.map((p) => (
-              <li data-calc-row={p}>
-                <span class="calc-name">{pkg[p].name}<small>{t.pricing.from} {money(prices[p])}</small></span>
+              <li data-calc-row={p} class:list={{ 'is-hot': p === 'profesional' }}>
+                <span class="calc-name">{pkg[p].name}{p === 'profesional' && <em> · {t.pricing.badge}</em>}<small>{t.pricing.from} {money(prices[p])}</small></span>
                 <strong data-calc-months>—</strong>
                 <span class="calc-bar" aria-hidden="true"><i /></span>
               </li>
@@ -317,71 +429,34 @@ const hasPhoto = existsSync('public/assets/foto-david.webp');
           </ul>
           <p class="calc-honest">{t.calc.honest}</p>
           <noscript><p class="calc-honest">{t.calc.noscript}</p></noscript>
-          <a class="btn btn-accent" href={waGeneral} target="_blank" rel="noopener" data-wa="calc" data-track="whatsapp_click" data-label="calculadora"><svg class="ico" aria-hidden="true"><use href="#i-wa" /></svg>{t.calc.cta}</a>
+          <a class="btn btn-accent" href={waGeneral} target="_blank" rel="noopener" data-wa="calc" data-calc-cta data-track="whatsapp_click" data-label="calculadora"><svg class="ico" aria-hidden="true"><use href="#i-wa" /></svg>{t.calc.cta}</a>
         </div>
       </div>
     </section>
 
-    <section class="pricing" id="paquetes" aria-labelledby="pricing-title">
-      <div class="wrap">
-        <h2 id="pricing-title" class="h-big" data-reveal>{t.pricing.title}</h2>
-        <p class="lead" data-reveal>{t.pricing.intro}</p>
-        <div class="tabs" role="group" aria-label={t.pricing.tabsLabel} data-tabs>
-          {packageIds.map((p) => <button type="button" class:list={['tab', { 'is-on': p === 'profesional' }]} aria-pressed={p === 'profesional' ? 'true' : 'false'} data-tab={p}>{pkg[p].name}</button>)}
+    {offerOn && (
+      <section class="offer" aria-labelledby="offer-title">
+        <div class="wrap offer-in">
+          <p class="offer-big" aria-hidden="true" data-offer-big>{pct}</p>
+          <div class="offer-side">
+            <h2 id="offer-title" class="offer-title" data-reveal>{t.offer.title(pct, OFFER.spotsTotal)}</h2>
+            <p data-reveal>{t.offer.text}</p>
+            <p class="offer-stamp" data-offer-stamp>{t.offer.stamp(OFFER.spotsLeft, OFFER.spotsTotal)}</p>
+            <a class="btn" href={wa(WHATSAPP_NUMBER, `${baseMessage} ${t.wa.offer(pct)}`)} target="_blank" rel="noopener" data-wa="offer" data-wa-suffix={t.wa.offer(pct)} data-track="whatsapp_click" data-label="oferta" data-magnetic><svg class="ico" aria-hidden="true"><use href="#i-wa" /></svg>{t.offer.cta(OFFER.spotsTotal)}</a>
+          </div>
         </div>
-      </div>
-      <ul class="tickets" data-tickets tabindex="0" aria-label={t.pricing.tabsLabel}>
-        {packageIds.map((p) => (
-          <li class:list={['ticket', { 'ticket-hot': p === 'profesional' }]} data-ticket={p}>
-            <div class="ticket-main">
-              {p === 'profesional' && <p class="ticket-badge">{t.pricing.badge}</p>}
-              <h3>{pkg[p].name}</h3>
-              <p class="ticket-line">{pkg[p].tagline}</p>
-              <ul class="ticket-items">
-                {pkg[p].items.map((i) => <li><svg class="ico-check" aria-hidden="true"><use href="#i-check" /></svg><span>{i}</span></li>)}
-              </ul>
-            </div>
-            <div class="ticket-stub">
-              <p class="ticket-price"><small>{t.pricing.from}</small> {money(prices[p])}{!isEs && <small> USD</small>}</p>
-              <a class="btn ticket-btn" href={wa(WHATSAPP_NUMBER, `${baseMessage} ${t.wa.packageSuffix(pkg[p].name)}`)} target="_blank" rel="noopener" data-wa="package" data-wa-suffix={t.wa.packageSuffix(pkg[p].name)} data-track="package_click" data-label={p}>
-                <svg class="ico" aria-hidden="true"><use href="#i-wa" /></svg>{t.pricing.ctaPrefix} {pkg[p].name}
-              </a>
-            </div>
-          </li>
-        ))}
-      </ul>
-      <div class="wrap">
-        <div class="maint" data-reveal>
-          <div class="maint-text"><h3>{t.pricing.maintenance.name}</h3><p>{t.pricing.maintenance.text}</p></div>
-          <p class="maint-price">{t.pricing.maintenance.price}<small>{t.pricing.maintenance.unit}</small></p>
-          <a class="btn" href={wa(WHATSAPP_NUMBER, `${baseMessage} ${t.wa.packageSuffix(t.wa.maintenance)}`)} target="_blank" rel="noopener" data-wa="package" data-wa-suffix={t.wa.packageSuffix(t.wa.maintenance)} data-track="package_click" data-label="mantenimiento"><svg class="ico" aria-hidden="true"><use href="#i-wa" /></svg>{t.pricing.maintenance.cta}</a>
-        </div>
-        <ul class="terms">
-          {t.pricing.conditions.map((c) => <li data-reveal><strong>{c.big}</strong><span>{c.text}</span></li>)}
-        </ul>
-      </div>
-    </section>
-
-    <section class="offer" aria-labelledby="offer-title">
-      <div class="wrap offer-in">
-        <h2 id="offer-title" data-reveal>{t.offer.big}</h2>
-        <div class="offer-side" data-reveal>
-          <p class="offer-statement">{t.offer.title}</p>
-          <p>{t.offer.text}</p>
-          <a class="btn" href={wa(WHATSAPP_NUMBER, `${baseMessage} ${t.wa.offer}`)} target="_blank" rel="noopener" data-wa="offer" data-wa-suffix={t.wa.offer} data-track="whatsapp_click" data-label="oferta"><svg class="ico" aria-hidden="true"><use href="#i-wa" /></svg>{t.offer.cta}</a>
-        </div>
-      </div>
-    </section>
+      </section>
+    )}
 
     <section class="about" id="sobre-mi" aria-labelledby="about-title">
       <div class="wrap about-grid">
-        <div class="about-head">
+        <div class="about-media" data-about-media>
           {hasPhoto
             ? <img class="about-photo" src="/assets/foto-david.webp" width="576" height="720" alt={t.about.photoAlt} loading="lazy" decoding="async" />
-            : <span class="monogram" role="img" aria-label={t.about.monogramAlt}><span aria-hidden="true">DH</span></span>}
-          <h2 id="about-title" class="h-big">{t.about.title}</h2>
+            : <span class="monogram" role="img" aria-label={t.about.monogramAlt}><span aria-hidden="true">dh</span></span>}
         </div>
         <div class="about-text">
+          <h2 id="about-title" class="h2" data-split>{t.about.title}</h2>
           {t.about.paragraphs.map((p) => <p class="about-p" data-reveal>{p}</p>)}
           <h3 data-reveal>{t.about.workTitle}</h3>
           <ul class="about-work" data-reveal>{t.about.work.map((w) => <li>{w}</li>)}</ul>
@@ -392,14 +467,14 @@ const hasPhoto = existsSync('public/assets/foto-david.webp');
     <section class="faq" id="preguntas" aria-labelledby="faq-title">
       <div class="wrap faq-grid">
         <div class="faq-head">
-          <h2 id="faq-title" class="h-big" data-reveal>{t.faq.title}</h2>
+          <h2 id="faq-title" class="h2" data-split>{t.faq.title}</h2>
           <p class="lead" data-reveal>{t.faq.intro}</p>
         </div>
-        <div class="faq-chat">
+        <div class="faq-list">
           {t.faq.items.map((f, i) => (
             <details name="faq" class="q" open={i === 0}>
-              <summary><span class="bubble bubble-out">{f.q}</span></summary>
-              <div class="a"><p class="bubble bubble-in"><b>{t.faq.from}</b>{f.a}</p></div>
+              <summary><span class="q-text">{f.q}</span><span class="q-plus" aria-hidden="true"></span></summary>
+              <div class="a"><p>{f.a}</p></div>
             </details>
           ))}
         </div>
@@ -409,17 +484,17 @@ const hasPhoto = existsSync('public/assets/foto-david.webp');
     <section class="close" id="escribeme" aria-labelledby="close-title">
       <a class="close-word" href={waGeneral} target="_blank" rel="noopener" data-wa="close" data-track="whatsapp_click" data-label="cierre" aria-label={t.close.wordLabel}>
         <span class="close-lead">{t.close.lead}</span>
-        <svg class="close-arrow" aria-hidden="true"><use href="#i-arrow" /></svg>
-        <h2 id="close-title" class="close-big" data-fit>{t.close.word}</h2>
+        <svg class="close-arrow" aria-hidden="true" data-magnetic><use href="#i-arrow" /></svg>
+        <span id="close-title" class="close-big" data-close-word>{t.close.word}</span>
       </a>
+      <details class="close-form" data-close-form open>
+        <summary class="close-summary"><span class="wrap close-summary-in"><span class="close-summary-title">{t.close.formTitle}</span><span class="q-plus" aria-hidden="true"></span></span></summary>
       <div class="wrap close-form-grid">
         <div class="close-intro">
-          <h3>{t.close.formTitle}</h3>
           <p>{t.close.formIntro}</p>
           <div class="close-preview" aria-hidden="true">
             <p class="bubble-label">{t.close.previewLabel}</p>
             <p class="bubble bubble-out" data-form-preview>{baseMessage}</p>
-            <p class="bubble bubble-in">{t.close.reply}</p>
           </div>
         </div>
         <form class="lead-form" data-lead-form novalidate>
@@ -442,32 +517,36 @@ const hasPhoto = existsSync('public/assets/foto-david.webp');
           <button class="btn btn-submit" type="submit"><svg class="ico" aria-hidden="true"><use href="#i-wa" /></svg>{t.close.submit}</button>
         </form>
       </div>
+      </details>
     </section>
-    </main>
+  </main>
 
   <footer class="foot">
-    <svg class="foot-mark" viewBox={`0 0 ${wordmark.w} 92`} role="img" aria-label="David Hernández"><path fill="currentColor" d={wordmark.d} /></svg>
     <div class="wrap foot-row">
-      <div>
-        <p class="foot-role">{t.footer.role}</p>
-        <a class="foot-wa" href={waGeneral} target="_blank" rel="noopener" data-wa="footer" data-track="whatsapp_click" data-label="footer"><svg class="ico" aria-hidden="true"><use href="#i-wa" /></svg>{t.footer.write}</a>
+      <div class="foot-cta">
+        <p class="foot-invite">{t.footer.invite}</p>
+        <a class="btn btn-accent foot-wa" href={waGeneral} target="_blank" rel="noopener" data-wa="footer" data-track="whatsapp_click" data-label="footer"><svg class="ico" aria-hidden="true"><use href="#i-wa" /></svg>{t.footer.write}</a>
       </div>
-      <ul class="foot-links">
-        <li><a href="#demos">{t.nav.demos}</a></li>
-        <li><a href="#paquetes">{t.nav.packages}</a></li>
-        <li><a href="#preguntas">{t.nav.faq}</a></li>
-        <li><a href={t.privacyHref}>{t.footer.privacy}</a></li>
-        <li><a href={t.otherHome} hreflang={isEs ? 'en' : 'es'} lang={isEs ? 'en' : 'es'}>{t.otherFull}</a></li>
-      </ul>
+      <div class="foot-side">
+        <p class="foot-role">{t.footer.role}</p>
+        <ul class="foot-links">
+          <li><a href="#demos">{t.nav.demos}</a></li>
+          <li><a href="#paquetes">{t.nav.packages}</a></li>
+          <li><a href="#preguntas">{t.nav.faq}</a></li>
+          <li><a href={t.privacyHref}>{t.footer.privacy}</a></li>
+          <li><a href={t.otherHome} hreflang={isEs ? 'en' : 'es'} lang={isEs ? 'en' : 'es'}>{t.otherFull}</a></li>
+        </ul>
+      </div>
     </div>
-    <div class="wrap foot-legal"><p>© {new Date().getFullYear()} {t.footer.rights}. {t.footer.fictional}</p><a href="#hero">{t.footer.top}</a></div>
+    <div class="wrap foot-legal"><p>© {new Date().getFullYear()} {BRAND_NAME}. {t.footer.fictional}</p><a href="#hero">{t.footer.top}</a></div>
+    <div class="foot-mark-wrap" aria-hidden="true"><svg class="foot-mark" viewBox={`0 0 ${wordmark.w} 96`} data-foot-mark><path fill="currentColor" d={wordmark.d} /></svg></div>
   </footer>
 
   <a class="float" href={waGeneral} target="_blank" rel="noopener" aria-label={t.floatLabel} data-wa="float" data-track="whatsapp_click" data-label="flotante" data-float tabindex="-1">
     <svg aria-hidden="true"><use href="#i-wa" /></svg>
   </a>
 
-  <dialog class="viewer" data-viewer aria-label={t.viewer.label}>
+  <dialog class="viewer" data-viewer aria-label={t.viewer.label} data-lenis-prevent>
     <div class="viewer-bar">
       <p class="viewer-name" data-viewer-name></p>
       <a class="btn btn-ghost viewer-tab" data-viewer-tab href="#" target="_blank" rel="noopener"><svg class="ico" aria-hidden="true"><use href="#i-arrow" /></svg><span class="only-wide">{t.viewer.newTab}</span><span class="only-narrow">{t.viewer.newTabShort}</span></a>
