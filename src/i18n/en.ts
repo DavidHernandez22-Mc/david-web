@@ -50,7 +50,7 @@ export const en: Copy = {
     odontologia: { chip: 'Dental practice', noun: 'practice', sub: 'Your patients tap where it hurts and see the treatment, time and price before they message you.' },
     estetica: { chip: 'Aesthetic clinic', noun: 'aesthetic clinic', sub: 'Your patients build their plan, see what it includes and message you ready to book, from abroad too.' },
     veterinaria: { chip: 'Vet clinic', noun: 'vet clinic', sub: 'Owners see which vaccine their pet needs and when, and in an emergency they reach you with one button.' },
-    inmobiliaria: { chip: 'Real estate', noun: 'real estate agency', sub: 'Your clients search by neighbourhood and budget, save favourites and work out their mortgage before asking for a viewing.' },
+    inmobiliaria: { chip: 'Real estate', noun: 'realty', sub: 'Your clients search by neighbourhood and budget, save favourites and work out their mortgage before asking for a viewing.' },
     restaurante: { chip: 'Restaurant', noun: 'restaurant', sub: 'Your customer builds the order from the menu and it reaches your WhatsApp complete, with no app commissions.' },
     otro: { chip: 'Other', noun: 'business', sub: 'Tell me what you sell and in 48 hours I’ll show you a free sample made for your business.' },
   } satisfies Record<SectorId, { chip: string; noun: string; sub: string }>,
@@ -201,7 +201,7 @@ export const en: Copy = {
   close: {
     word: 'Message',
     wordLabel: 'Message me on WhatsApp',
-    lead: 'One message and that’s it. I reply the same day, Monday to Saturday.',
+    lead: 'One message and that’s it. I reply the same day, every day.',
     formTitle: 'Rather tell me a bit more?',
     formIntro: 'Fill this in and I’ll have your message ready. Nothing is sent until you hit send in your WhatsApp.',
     name: 'Your name',

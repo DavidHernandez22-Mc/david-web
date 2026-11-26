@@ -554,12 +554,17 @@ html[lang='en'] .close-big { font-size: calc((100vw - var(--gutter) * 2) / 3.86)
   .calc-out h3 { margin-top: 18px; }
   .calc-results { gap: 14px; }
   .about-grid { gap: 22px; }
-  .about-media { width: 52%; }
+  .about-media { width: 72%; }
   .about-p { font-size: 1.25rem; }
   .about-text h3 { margin-top: 24px; }
   .q summary { min-height: 56px; padding-block: 12px; }
   .close-preview { display: none; }
-  .hero-scene { height: 270px; }
+  .hero-scene { height: max(270px, 72vw); }
+  /* El celular y los fragmentos caben dentro de la escena: nada tapa "¿Qué negocio tienes?". */
+  .hero-phone { width: 30%; top: 8%; }
+  .frag-bubble { top: 40%; }
+  .frag-stamp { left: auto; right: 3%; bottom: 2%; }
+  .frag-stamp > span { white-space: nowrap; font-size: .875rem; }
   .pb-chatlog { flex-direction: row; flex-wrap: wrap; gap: 14px 8px; }
   .pb-chatlog .bubble:nth-child(even) { margin-left: 0; }
   .pb-art { max-height: 110px; overflow: hidden; }
@@ -586,6 +591,8 @@ html[lang='en'] .close-big { font-size: calc((100vw - var(--gutter) * 2) / 3.86)
 /* ---------- Tableta (≥ 600 px) ---------- */
 @media (min-width: 600px) {
   .btn-hero { width: auto; padding-inline: 30px; }
+  /* En tableta la regla de "primera pantalla limpia" del celular dejaba un hueco vacío: la escena sube. */
+  .hero-copy { min-height: 0; padding-block: clamp(48px, 8vw, 80px) 24px; }
   .hero-scene { height: clamp(460px, 80vw, 620px); }
   .hero-phone { width: 30%; }
   .frag-bubble { width: 300px; }
@@ -696,7 +703,8 @@ html[lang='en'] .close-big { font-size: calc((100vw - var(--gutter) * 2) / 3.86)
   .js .demo-meta { display: flex; justify-content: space-between; align-items: baseline; gap: 24px; padding-top: 28px; width: 100%; }
   .js .demo-count { font-family: var(--display); font-weight: 900; font-size: 1.5rem; letter-spacing: -.02em; font-variant-numeric: tabular-nums; }
   .js .demo-index { display: flex; gap: 20px; font-weight: 700; font-size: .9375rem; }
-  .js .demo-index li { opacity: .45; transition: opacity 300ms ease; }
+  /* Inactivos atenuados pero legibles (≥ 4,5:1 incluso sobre el rojo del restaurante); el activo va subrayado. */
+  .js .demo-index li { opacity: .86; transition: opacity 300ms var(--ease-out); }
   .js .demo-index li.is-on { opacity: 1; text-decoration: underline; text-underline-offset: .3em; text-decoration-thickness: 2px; }
   .js .demo-list { display: grid; grid-template-areas: 'stack'; min-height: 0; }
   .js .demo-panel { grid-area: stack; background: transparent; color: inherit; opacity: 0; pointer-events: none; transition: opacity 500ms var(--ease-out); }

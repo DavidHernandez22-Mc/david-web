@@ -14,6 +14,8 @@ Rediseño de davidhcwebs.com con la dirección **"El mensaje en grande"** y la m
 | `e99a8e1` | HSTS en el dominio principal y prueba estable de "Saltar las demos" |
 | `f33b610` | Fase 5: `llms.txt` y `<lastmod>` en el sitemap |
 | `8bef5b3` | Fase 6: el titular ya no se desborda con sectores de varias palabras |
+| `cf7a0f3` | Fase 7: este documento |
+| (siguiente) | Foto nueva, atención 24/7, "realty" en inglés y correcciones de las revisiones finales |
 
 ## Rendimiento: antes y después (Lighthouse móvil)
 
@@ -63,7 +65,7 @@ Altura de la home en celular: de unos 14.100 px a unos 10.000 px.
 - **Demos:** en computador, escenario fijo con poco scroll por sector, contador 1/5 y enlace para saltarlo; en celular, carrusel con la siguiente asomándose y puntos de posición. El visor abre los subdominios reales.
 - **Así trabajo**, **Qué recibes**, **Paquetes antes de la calculadora**, **oferta** (sale de `OFFER` en `site.config.mjs`), **Sobre mí** con la Javeriana, **FAQ**, cierre con formulario plegado en celular.
 - **Animación:** GSAP con ScrollTrigger y SplitText, Lenis solo en computador con mouse, botones magnéticos e inclinación 3D solo con mouse. Con "reducir movimiento" no se anima nada y todo se ve.
-- **SEO:** "Bogotá" y "páginas web" en título, H1/subtítulo, meta description y JSON-LD; JSON-LD `ProfessionalService` con teléfono, Bogotá, Colombia y horario de lunes a sábado; `FAQPage`; `llms.txt`; `<lastmod>`.
+- **SEO:** "Bogotá" y "páginas web" en título, H1/subtítulo, meta description y JSON-LD; JSON-LD `ProfessionalService` con teléfono, Bogotá, Colombia y atención 24/7 (lunes a domingo, 00:00–23:59); en ES y EN la web dice "Te respondo el mismo día, todos los días"; `FAQPage`; `llms.txt`; `<lastmod>`.
 - **Pruebas:** `npm test` cubre todo lo anterior, incluido el escenario de demos en computador, el carrusel en celular, la oferta desde la configuración, los encabezados y el titular a 320 px con cada sector.
 
 ### Cómo apagar o cambiar la oferta
@@ -86,13 +88,15 @@ Hecho:
 - Encabezados de seguridad.
 - `npm test` completo en verde y Lighthouse al final.
 
-No hecho: no repetí las pasadas formales de `review-animations`, `web-review` e `impeccable audit` sobre la versión final. Si quieres, las corro antes de publicar.
+Revisiones formales sobre la versión final:
+
+- **impeccable audit** (detector sobre la página renderizada + revisión manual): un hallazgo. Los nombres inactivos del índice de demos tenían contraste de 3,7:1 → ahora ≥ 4,5:1 en los 5 colores de sector. Sin objetivos táctiles menores de 24 px; 69 paradas de teclado, todas con foco visible; sin JavaScript y con "reducir movimiento" no queda contenido escondido.
+- **web-review** (capturas de página completa a 375, 768 y 1440 px): en celular el celular de la escena tapaba "¿Qué negocio tienes?" y el sello "Ejemplo gratis en 48 horas" se montaba sobre la burbuja → la escena se ajusta al ancho y queda a ~29 px del título de 320 a 599 px. En tableta había 270–330 px de naranja vacío bajo los botones → la escena sube. La foto en celular pasó del 52 % al 72 % del ancho.
+- **Animaciones**: `review-animations` no está instalada en esta sesión; usé `improve-animations` (misma escuela, Emil Kowalski) en modo rápido. Curvas y duraciones correctas, nada escala desde 0, "reducir movimiento" lo quita todo. Se corrigió que el rotador del hero siguiera girando y descargando capturas con el hero fuera de pantalla.
 
 ## [PENDIENTE]
 
-1. **[PENDIENTE: foto nueva]** El espacio de "Sobre mí" sigue con `public/assets/foto-david.webp` (576×720, 4:5). Cuando la tengas, reemplaza ese archivo con el mismo nombre y tamaño.
-2. **[PENDIENTE: horas exactas]** El JSON-LD dice lunes a sábado sin horas. Si me das la hora de inicio y de cierre, las agrego.
-3. **En inglés, "real estate agency" ocupa 4 líneas en computador** (el resto, 3). Se ve bien, pero si prefieres 3 líneas puedo cambiarlo a "agency" o "real estate".
+Nada pendiente de tu parte. Resueltos en esta ronda: la foto nueva (`public/assets/foto-david.webp`, 576×720, 21 KB, sin metadatos de ubicación), el horario (24/7) y el titular en inglés ("realty", 3 líneas).
 
 ## Cómo verlo en tu computador
 

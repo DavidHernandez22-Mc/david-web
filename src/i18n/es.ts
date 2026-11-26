@@ -200,7 +200,7 @@ export const es = {
   close: {
     word: 'Escríbeme',
     wordLabel: 'Escríbeme por WhatsApp',
-    lead: 'Un mensaje y listo. Te respondo el mismo día, de lunes a sábado.',
+    lead: 'Un mensaje y listo. Te respondo el mismo día, todos los días.',
     formTitle: '¿Prefieres contarme un poco más?',
     formIntro: 'Llena esto y te dejo el mensaje listo. Nada se envía hasta que le des enviar en tu WhatsApp.',
     name: 'Tu nombre',

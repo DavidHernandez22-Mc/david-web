@@ -109,7 +109,9 @@ for (const [path, L] of [['/', { base: 'Hola David, vi tu página y quiero una w
   ok(order.every((y, i) => i === 0 || y > order[i - 1]), `orden del hero en celular ${order.map(Math.round).join(' < ')}`);
   ok(await page.evaluate(() => document.querySelector('[data-hero-demos]').getBoundingClientRect().bottom <= innerHeight && document.querySelector('.picker').getBoundingClientRect().top >= innerHeight), 'primera pantalla: solo título, subtítulo, WhatsApp y "Ver demos"');
   ok(await page.$eval('.chips', (c) => c.getBoundingClientRect().height < 60), 'selector en una fila compacta');
-  ok((await page.textContent('.close-lead')).includes(path === '/' ? 'lunes a sábado' : 'Monday to Saturday'), 'horario de respuesta: lunes a sábado');
+  ok((await page.textContent('.close-lead')).includes(path === '/' ? 'el mismo día, todos los días' : 'the same day, every day'), 'horario de respuesta: todos los días');
+  ok(!/lunes a sábado|Monday to Saturday/.test(await page.textContent('body')), 'ningún texto dice "lunes a sábado"');
+  ok(await page.evaluate(() => [...document.querySelectorAll('script[type="application/ld+json"]')].some((s) => { const t = s.textContent; return t.includes('"Sunday"') && t.includes('"opens":"00:00"') && t.includes('"closes":"23:59"'); })), 'JSON-LD abierto 24/7 (Mo-Su 00:00-23:59)');
   ok((await page.textContent('.ticket-badge')).trim() === (path === '/' ? 'Recomendado' : 'Recommended'), 'etiqueta Recomendado');
   ok((await page.$$('.ticket-offer')).length === 3 && (await page.textContent('[data-offer-stamp]')).includes('3'), 'oferta desde la configuración: precio rebajado en los 3 paquetes y cupos');
   ok((await page.textContent('.hero-scene .frag-price')).includes(path === '/' ? '1.600.000' : '510'), 'el precio del hero es el del paquete más barato');

@@ -68,7 +68,7 @@ const jsonLd = {
         { '@type': 'City', name: 'Bogotá' },
         { '@type': 'Country', name: 'Colombia' },
       ],
-      openingHoursSpecification: [{ '@type': 'OpeningHoursSpecification', dayOfWeek: ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'] }],
+      openingHoursSpecification: [{ '@type': 'OpeningHoursSpecification', dayOfWeek: ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'], opens: '00:00', closes: '23:59' }],
       inLanguage: lang,
       priceRange: isEs ? `${money(COP_PRICES.esencial)} - ${money(COP_PRICES.premium)} COP` : `${money(USD_PRICES.esencial)} - ${money(USD_PRICES.premium)} USD`,
       founder: { '@id': `${SITE_URL}/#david` },

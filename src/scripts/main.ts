@@ -122,11 +122,17 @@ function showDemo(demo: string) {
   });
 }
 const sceneOrder = [...new Set(shots.map((s) => s.dataset.demo!))];
+// Fuera de pantalla el rotador no avanza ni descarga capturas: en celular no gasta datos que nadie ve.
+let heroInView = true;
+const heroEl = $('#hero');
+if (heroEl && 'IntersectionObserver' in window) {
+  new IntersectionObserver(([e]) => { heroInView = Boolean(e?.isIntersecting); }).observe(heroEl);
+}
 function startRotator() {
   stopRotator();
   if (reduced) return;
   rotator = window.setInterval(() => {
-    if (document.hidden) return;
+    if (document.hidden || !heroInView) return;
     const i = sceneOrder.indexOf(currentDemo);
     showDemo(sceneOrder[(i + 1) % sceneOrder.length]!);
     // La siguiente ya queda descargada antes de su turno.

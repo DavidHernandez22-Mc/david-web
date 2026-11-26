@@ -13,7 +13,7 @@ const body = `# ${BRAND_NAME}
 
 - Web en español: ${abs('/')}
 - Web en inglés: ${abs('/en/')}
-- WhatsApp: https://wa.me/${WHATSAPP_NUMBER} (+57 324 428 1553). Respuesta el mismo día, de lunes a sábado.
+- WhatsApp: https://wa.me/${WHATSAPP_NUMBER} (+57 324 428 1553). Respuesta el mismo día, todos los días (24/7).
 
 ## Paquetes (precios desde, en pesos colombianos)
 
