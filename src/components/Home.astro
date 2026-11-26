@@ -90,7 +90,6 @@ const jsonLd = {
 const pkg = t.pricing.packages;
 // Tu foto: guarda public/assets/foto-david.webp (576×720, 4:5) y aparece sola en el próximo build. Sin archivo, se ve el monograma.
 const hasPhoto = existsSync('public/assets/foto-david.webp');
-const Logo = { w: logo.w, box: logo.box };
 ---
 <Base
   lang={lang}
@@ -108,7 +107,7 @@ const Logo = { w: logo.w, box: logo.box };
 
   <header class="bar">
     <a class="logo" href={t.home} aria-label={t.logoLabel}>
-      <svg viewBox={`0 0 ${Logo.w} ${Logo.box}`} aria-hidden="true"><rect width={Logo.box} height={Logo.box} fill="currentColor" /><path class="logo-cut" d={logo.dh} /><path fill="currentColor" d={logo.name} /><path fill="currentColor" d={logo.webs} /></svg>
+      <svg viewBox={`0 0 ${logo.w} ${logo.h}`} aria-hidden="true"><path fill="currentColor" transform={logo.markTransform} d={logo.mark} /><g fill="currentColor" transform={logo.textTransform}><path d={logo.david} /><path d={logo.hc} /><path d={logo.webs} /></g></svg>
     </a>
     <nav class="bar-nav" aria-label={t.nav.label}>
       <a class="nav-sec" href="#demos">{t.nav.demos}</a>
@@ -122,7 +121,7 @@ const Logo = { w: logo.w, box: logo.box };
 
   <dialog class="menu" data-menu aria-label={t.nav.menu} data-lenis-prevent>
     <div class="menu-top">
-      <svg class="menu-logo" viewBox={`0 0 ${Logo.w} ${Logo.box}`} aria-hidden="true"><rect width={Logo.box} height={Logo.box} fill="currentColor" /><path class="menu-logo-cut" d={logo.dh} /><path fill="currentColor" d={logo.name} /><path fill="currentColor" d={logo.webs} /></svg>
+      <svg class="menu-logo" viewBox={`0 0 ${logo.w} ${logo.h}`} aria-hidden="true"><path fill="currentColor" transform={logo.markTransform} d={logo.mark} /><g fill="currentColor" transform={logo.textTransform}><path d={logo.david} /><path d={logo.hc} /><path d={logo.webs} /></g></svg>
       <button class="menu-close" type="button" aria-label={t.nav.close} data-menu-close autofocus><svg aria-hidden="true"><use href="#i-close" /></svg></button>
     </div>
     <nav aria-label={t.nav.menu}>

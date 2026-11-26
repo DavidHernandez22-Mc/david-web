@@ -105,9 +105,8 @@ html.lenis, html.lenis body { height: auto; }
 /* ---------- Barra ---------- */
 .bar, .hero { background: var(--h-bg); color: var(--h-ink); transition: background-color var(--t-field) var(--ease-out), color var(--t-field) var(--ease-out); }
 .bar { display: flex; align-items: center; justify-content: space-between; gap: 16px; padding: 14px var(--gutter) 6px; }
-.logo { display: block; flex: 0 1 auto; min-width: 0; width: clamp(168px, 48vw, 204px); }
+.logo { display: block; flex: 0 1 auto; min-width: 0; width: clamp(176px, 48vw, 232px); }
 .logo svg { width: 100%; height: auto; }
-.logo-cut { fill: var(--h-bg); transition: fill var(--t-field) var(--ease-out); }
 .bar-nav { display: flex; align-items: center; gap: 6px; font-weight: 600; }
 .bar-nav a:not(.btn) { text-decoration: none; min-height: 44px; align-items: center; padding-inline: 4px; }
 .bar-nav .nav-sec { display: none; }
@@ -121,7 +120,6 @@ html.lenis, html.lenis body { height: auto; }
 .menu::backdrop { background: var(--orange); }
 .menu-top { display: flex; align-items: center; justify-content: space-between; gap: 16px; }
 .menu-logo { width: 196px; height: auto; }
-.menu-logo-cut { fill: var(--orange); }
 .menu-close { width: 48px; height: 48px; display: grid; place-items: center; background: var(--ink); color: #fff; border: 0; cursor: pointer; }
 .menu-close svg { width: 24px; height: 24px; }
 .menu nav { flex: 1; display: flex; align-items: center; }
