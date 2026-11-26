@@ -259,6 +259,13 @@ ok(await page.$eval('[data-reveal]', (e) => getComputedStyle(e).opacity === '1')
   ok(h['strict-transport-security'] === 'max-age=31536000', `HSTS sin preload (${h['strict-transport-security']})`);
   ok((h['content-security-policy'] || '').includes('https://static.cloudflareinsights.com') && h['x-content-type-options'] === 'nosniff', 'CSP con Web Analytics y demás encabezados intactos');
 }
+{
+  const sm = await (await page.goto(base + '/sitemap.xml')).text();
+  ok((sm.match(/<lastmod>\d{4}-\d{2}-\d{2}<\/lastmod>/g) || []).length === 4, 'sitemap con <lastmod> en las 4 URL');
+  const llms = await page.goto(base + '/llms.txt');
+  const lt = await llms.text();
+  ok(llms.status() === 200 && lt.startsWith('# DavidHC Webs') && lt.includes('1.600.000') && lt.includes('no son clientes reales') && lt.includes('573244281553'), 'llms.txt con paquetes, demos como ejemplos y WhatsApp');
+}
 const res = await page.goto(base + '/no-existe/');
 ok(res.status() === 404 && (await page.textContent('h1')).length > 3, `404 con personalidad (${res.status()})`);
 const c2 = await browser.newContext({ ignoreHTTPSErrors: true, javaScriptEnabled: false, viewport: { width: 390, height: 780 } });
