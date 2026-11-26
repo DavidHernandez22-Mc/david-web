@@ -142,7 +142,9 @@ html.lenis, html.lenis body { height: auto; }
 .hero-title { font-size: var(--step-display); line-height: .9; letter-spacing: -.05em; text-wrap: initial; max-width: 11ch; }
 .hw { display: inline-block; overflow: clip; vertical-align: bottom; padding: .04em .02em .12em; margin: -.04em -.02em -.12em; }
 .hw > span { display: inline-block; }
-.h-word { white-space: nowrap; }
+/* El sector puede tener varias palabras ("real estate agency"): se parte en otra línea solo si no cabe. */
+.hw:has(> [data-h-word]) { max-width: 100%; }
+.h-word { white-space: normal; }
 .hw-frame { padding-bottom: .02em; margin-bottom: -.02em; }
 .h-frame { position: relative; display: inline-block; width: 1.45em; height: .78em; vertical-align: -.02em; background: var(--h-ink); padding: .055em; overflow: hidden; }
 .h-frame .shot { position: absolute; inset: .055em; width: calc(100% - .11em); height: calc(100% - .11em); object-fit: cover; object-position: top; }

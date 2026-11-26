@@ -266,6 +266,22 @@ ok(await page.$eval('[data-reveal]', (e) => getComputedStyle(e).opacity === '1')
   const lt = await llms.text();
   ok(llms.status() === 200 && lt.startsWith('# DavidHC Webs') && lt.includes('1.600.000') && lt.includes('no son clientes reales') && lt.includes('573244281553'), 'llms.txt con paquetes, demos como ejemplos y WhatsApp');
 }
+// Peor caso del titular: cada sector a 320 px, en los dos idiomas, sin desbordar
+{
+  const nc = await browser.newContext({ ignoreHTTPSErrors: true, viewport: { width: 320, height: 640 }, reducedMotion: 'reduce' });
+  const np = await nc.newPage();
+  for (const path of ['/', '/en/']) {
+    await np.goto(base + path, { waitUntil: 'load' });
+    const bad = [];
+    for (const v of await np.$$eval('input[name=sector]', (cs) => cs.map((c) => c.value))) {
+      await np.$eval(`input[name=sector][value="${v}"]`, (c) => c.click());
+      await np.waitForTimeout(80);
+      if (await np.evaluate(() => document.documentElement.scrollWidth > innerWidth || document.querySelector('[data-h-word]').getBoundingClientRect().right > innerWidth)) bad.push(v);
+    }
+    ok(bad.length === 0, `${path} a 320 px ningún sector desborda el titular ${bad.join(', ')}`);
+  }
+  await nc.close();
+}
 const res = await page.goto(base + '/no-existe/');
 ok(res.status() === 404 && (await page.textContent('h1')).length > 3, `404 con personalidad (${res.status()})`);
 const c2 = await browser.newContext({ ignoreHTTPSErrors: true, javaScriptEnabled: false, viewport: { width: 390, height: 780 } });
