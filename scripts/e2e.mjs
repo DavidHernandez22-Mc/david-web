@@ -32,11 +32,12 @@ for (const [path, L] of [['/', { base: 'Hola David, vi tu página y quiero una w
   await page.tap(`.chip:has(input[value="${L.vetVal}"])`);
   await page.waitForTimeout(800);
   const after = await page.textContent('h1');
-  ok(before !== after && after.includes(L.title), `titular cambia: "${after}"`);
+  ok(before !== after && after.includes(L.vet), `titular cambia: "${after.replace(/\s+/g, ' ').trim()}"`);
   const bgAfter = await page.$eval('.hero', (e) => getComputedStyle(e).backgroundColor);
   ok(bgBefore !== bgAfter, 'el hero toma el color del sector');
-  ok(await page.$eval('.hero-shot.is-on', (i) => i.dataset.demo === 'veterinaria' && i.complete), 'muestra la demo del sector');
-  ok((await page.$$('.hero-list li')).length === 3, '3 funciones');
+  await page.waitForTimeout(600);
+  ok(await page.$$eval('.shot.is-on', (imgs) => ['laptop', 'phone', 'frame'].every((g) => imgs.some((i) => i.dataset.group === g && i.dataset.demo === 'veterinaria' && i.complete))), 'computador, celular y marco muestran la demo del sector');
+  ok((await page.textContent('.hero-sub')).includes(path === '/' ? 'vacuna' : 'vaccine'), 'el subtítulo cambia con el sector');
   const heroHref = await page.$eval('[data-wa="hero"]', (a) => a.href);
   ok(text(heroHref) === `${L.base} ${L.vet}.`, `mensaje con sector: "${text(heroHref)}"`);
   ok((await page.textContent('[data-bubble]')).includes(L.vet), 'la burbuja muestra el sector');
@@ -57,6 +58,8 @@ for (const [path, L] of [['/', { base: 'Hola David, vi tu página y quiero una w
   await page.tap('.seg label:has(input[value="5"])');
   const pro5 = await page.textContent('[data-calc-row="profesional"] [data-calc-months]');
   ok(/^2[.,]0 /.test(pro5), `5 clientes = "${pro5}" (esperado 2,0)`);
+  const calcHref = await page.$eval('[data-calc-cta]', (a) => a.href);
+  ok(text(calcHref).includes('10') && text(calcHref).includes(path === '/' ? '290.000' : '92') && text(calcHref).includes('5'), `"Escríbeme con mis números" lleva las cifras: "${text(calcHref)}"`);
   await page.fill('#c-value', '');
   ok((await page.textContent('[data-calc-row="esencial"] [data-calc-months]')).length > 3, 'sin datos no muestra NaN');
   ok(!(await page.textContent('.calc-out')).includes('NaN'), 'sin NaN');
@@ -95,16 +98,30 @@ for (const [path, L] of [['/', { base: 'Hola David, vi tu página y quiero una w
     const want = await page.$eval('[data-viewer-want]', (a) => a.href);
     ok(text(want).startsWith(L.base), `"Quiero una así": "${text(want)}"`);
     await page.tap('[data-viewer-close]');
-    await page.waitForTimeout(100);
+    await page.waitForTimeout(450);
     ok(!(await page.$eval('[data-viewer]', (d) => d.open)) && !(await page.$eval('[data-viewer-frame]', (f) => f.hasAttribute('src'))), 'visor cierra y libera el iframe');
   }
 
-  // Hero en celular: titular → subtítulo → botón → texto → enlaces → selector
-  const order = await page.evaluate(() => ['h1', '.hero-sub', '.btn-hero', '.hero-free', '[data-hero-demos]', '.picker'].map((q) => document.querySelector(q).getBoundingClientRect().top));
+  // Hero en celular: titular → subtítulo → botón → "Ver demos" en la primera pantalla; escena y selector después
+  await page.evaluate(() => window.scrollTo(0, 0));
+  await page.waitForTimeout(300);
+  const order = await page.evaluate(() => ['h1', '.hero-sub', '.btn-hero', '[data-hero-demos]', '.hero-scene', '.picker'].map((q) => document.querySelector(q).getBoundingClientRect().top));
   ok(order.every((y, i) => i === 0 || y > order[i - 1]), `orden del hero en celular ${order.map(Math.round).join(' < ')}`);
+  ok(await page.evaluate(() => document.querySelector('[data-hero-demos]').getBoundingClientRect().bottom <= innerHeight && document.querySelector('.picker').getBoundingClientRect().top >= innerHeight), 'primera pantalla: solo título, subtítulo, WhatsApp y "Ver demos"');
   ok(await page.$eval('.chips', (c) => c.getBoundingClientRect().height < 60), 'selector en una fila compacta');
-  ok((await page.textContent('.strip')).includes(path === '/' ? 'el mismo día' : 'the same day'), 'franja superior nueva');
+  ok((await page.textContent('.close-lead')).includes(path === '/' ? 'lunes a sábado' : 'Monday to Saturday'), 'horario de respuesta: lunes a sábado');
   ok((await page.textContent('.ticket-badge')).trim() === (path === '/' ? 'Recomendado' : 'Recommended'), 'etiqueta Recomendado');
+  ok((await page.$$('.ticket-offer')).length === 3 && (await page.textContent('[data-offer-stamp]')).includes('3'), 'oferta desde la configuración: precio rebajado en los 3 paquetes y cupos');
+  ok((await page.textContent('.hero-scene .frag-price')).includes(path === '/' ? '1.600.000' : '510'), 'el precio del hero es el del paquete más barato');
+
+  // Carrusel de demos en celular: la siguiente se asoma, puntos y contador
+  await page.$eval('#demos', (e) => e.scrollIntoView());
+  await page.waitForTimeout(300);
+  ok(await page.$eval('[data-demo-panel="1"]', (p) => { const r = p.getBoundingClientRect(); return r.left < innerWidth && r.right > innerWidth; }), 'la siguiente demo se asoma en el carrusel');
+  ok((await page.$$('[data-demo-dot]')).length === 5, '5 puntos de posición');
+  await page.$eval('[data-demo-dot="2"]', (b) => b.click());
+  await page.waitForTimeout(900);
+  ok(await page.$eval('[data-demo-dot="2"]', (b) => b.getAttribute('aria-current') === 'true'), 'tocar el punto 3 lleva a la demo 3');
 
   ok(await page.$eval('.nav-lang', (e) => getComputedStyle(e).display !== 'none' && e.textContent.trim() === (location.pathname.startsWith('/en/') ? 'ES' : 'EN')), 'idioma visible junto al menú');
 
@@ -134,7 +151,9 @@ for (const [path, L] of [['/', { base: 'Hola David, vi tu página y quiero una w
   await page.waitForTimeout(400);
   ok(!(await page.$eval('[data-float]', (f) => f.classList.contains('is-on'))), 'flotante se quita en el formulario para no tapar');
 
-  // Formulario
+  // Formulario: en celular empieza plegado
+  ok(!(await page.$eval('[data-close-form]', (d) => d.open)), 'formulario plegado en celular');
+  await page.$eval('[data-close-form] summary', (x) => x.click());
   let popup = null;
   await page.evaluate(() => { window.__open = null; window.open = (u) => { window.__open = u; return null; }; });
   await page.click('.btn-submit');
@@ -187,7 +206,8 @@ for (const path of ['/', '/en/', ...['odontologia', 'estetica', 'veterinaria', '
     await jp.goto(base + '/', { waitUntil: 'load' });
     await jp.evaluate((h) => { document.documentElement.style.scrollBehavior = 'auto'; location.hash = h; }, hash);
     await jp.waitForTimeout(500);
-    const hidden = await jp.evaluate(() => [...document.querySelectorAll('.will-reveal')].filter((e) => e.getBoundingClientRect().top < innerHeight).length);
+    await jp.waitForTimeout(1500);
+    const hidden = await jp.evaluate(() => [...document.querySelectorAll('[data-reveal]')].filter((e) => { const r = e.getBoundingClientRect(); return r.top < innerHeight && r.bottom > 0 && Number(getComputedStyle(e).opacity) < 0.99; }).length);
     ok(hidden === 0, `salto a ${hash}: ${hidden} bloques ocultos a la vista`);
   }
   await jc.close();
@@ -197,12 +217,48 @@ for (const path of ['/', '/en/', ...['odontologia', 'estetica', 'veterinaria', '
 const ctx = await browser.newContext({ ignoreHTTPSErrors: true, viewport: { width: 1280, height: 800 }, reducedMotion: 'reduce' });
 const page = await ctx.newPage();
 await page.goto(base + '/?negocio=restaurante');
-ok(await page.evaluate(() => document.querySelector('.picker').getBoundingClientRect().top < document.querySelector('h1').getBoundingClientRect().top), 'en computador el selector sigue arriba del titular');
+ok(await page.evaluate(() => document.querySelector('.picker').getBoundingClientRect().top > document.querySelector('h1').getBoundingClientRect().bottom), 'en computador el selector va debajo del titular');
 ok(await page.$eval('[data-menu-open]', (b) => getComputedStyle(b).display === 'none'), 'en computador no aparece el botón de menú');
-ok((await page.textContent('h1')).includes('comisiones'), 'enlace ?negocio=restaurante');
+ok((await page.textContent('h1')).includes('restaurante') && (await page.textContent('.hero-sub')).includes('comisiones'), 'enlace ?negocio=restaurante');
+ok(await page.$eval('.demo-sticky', (x) => getComputedStyle(x).position !== 'sticky'), 'movimiento reducido: las demos no se fijan, se apilan');
 await page.keyboard.press('Tab');
 ok(await page.evaluate(() => document.activeElement.classList.contains('skip')), 'Tab llega primero a "saltar al contenido"');
 ok(await page.$eval('[data-reveal]', (e) => getComputedStyle(e).opacity === '1'), 'movimiento reducido: contenido visible sin animar');
+// Computador con movimiento: escenario fijo de demos, poco scroll por sector y enlace para saltarlo
+{
+  const dc = await browser.newContext({ ignoreHTTPSErrors: true, viewport: { width: 1440, height: 900 }, reducedMotion: 'no-preference' });
+  const dp = await dc.newPage();
+  const derr = [];
+  dp.on('pageerror', (e) => derr.push(e.message));
+  await dp.goto(base + '/', { waitUntil: 'load' });
+  await dp.waitForTimeout(800);
+  const top = await dp.evaluate(() => document.querySelector('[data-demo-stage]').getBoundingClientRect().top + scrollY);
+  const seen = [];
+  for (let i = 0; i < 5; i++) {
+    await dp.evaluate((y) => { document.documentElement.style.scrollBehavior = 'auto'; window.scrollTo(0, y); }, top + (i * 0.45 + 0.1) * 900);
+    await dp.waitForTimeout(700);
+    seen.push(await dp.textContent('[data-demo-count]'));
+  }
+  ok(seen.join(',') === '1/5,2/5,3/5,4/5,5/5', `escenario fijo: cada ~45vh pasa un sector (${seen.join(',')})`);
+  ok(await dp.$eval('.demo-sticky', (x) => getComputedStyle(x).position === 'sticky'), 'el escenario de demos se fija en computador');
+  await dp.evaluate((y) => window.scrollTo(0, y), top - 300);
+  await dp.waitForTimeout(800);
+  await dp.$eval('.skip-demos', (a) => a.click());
+  await dp.waitForTimeout(1800);
+  ok(await dp.$eval('#despues-demos', (e) => { const r = e.getBoundingClientRect(); return r.top < innerHeight && r.bottom > 0; }), '"Saltar las demos" lleva después del escenario');
+  await dp.evaluate((y) => window.scrollTo(0, y), top + (2 * 0.45 + 0.1) * 900);
+  await dp.waitForTimeout(800);
+  await dp.$eval('[data-demo-panel="2"] [data-demo-open]', (a) => a.click());
+  await dp.waitForTimeout(600);
+  ok(await dp.$eval('[data-viewer-frame]', (f) => f.src.startsWith('https://inmobiliaria.davidhcwebs.com')), 'desde el escenario, el visor carga el subdominio real');
+  ok(derr.length === 0, `computador sin errores ${derr.join('; ')}`);
+  await dc.close();
+}
+{
+  const h = (await page.goto(base + '/')).headers();
+  ok(h['strict-transport-security'] === 'max-age=31536000', `HSTS sin preload (${h['strict-transport-security']})`);
+  ok((h['content-security-policy'] || '').includes('https://static.cloudflareinsights.com') && h['x-content-type-options'] === 'nosniff', 'CSP con Web Analytics y demás encabezados intactos');
+}
 const res = await page.goto(base + '/no-existe/');
 ok(res.status() === 404 && (await page.textContent('h1')).length > 3, `404 con personalidad (${res.status()})`);
 const c2 = await browser.newContext({ ignoreHTTPSErrors: true, javaScriptEnabled: false, viewport: { width: 390, height: 780 } });
